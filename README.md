@@ -297,3 +297,192 @@ Checks for:
 forge audit ./public/images
 forge audit ./public/images 100
 ```
+
+---
+
+### `srcset` — Retina image variants
+
+Generates `@1x`, `@2x`, `@3x` variants and prints the ready-to-use HTML `srcset` attribute.
+
+```bash
+forge srcset <image> [output_dir] [scales]
+# scales: comma-separated, default "1,2,3"
+
+forge srcset hero.png ./img
+forge srcset logo.png ./img 1,2       # skip @3x
+```
+
+---
+
+### `gif-to-video` — GIF to video
+
+Converts an animated GIF to `.mp4` + `.webm` for web performance. Prints the HTML `<video>` snippet.
+
+```bash
+forge gif-to-video <input.gif> [output_dir]
+
+forge gif-to-video animation.gif ./video
+```
+
+---
+
+### `video-to-gif` — Video to GIF
+
+Converts a video clip to an optimized GIF using a 2-pass palette approach for best color quality.
+
+```bash
+forge video-to-gif <input_video> [output.gif] [fps] [width]
+
+forge video-to-gif demo.mp4
+forge video-to-gif demo.mp4 demo.gif 12 320   # 12fps, 320px wide
+```
+
+---
+
+### `convert-video` — Convert video formats
+
+Converts between `.mp4`, `.webm`, `.mov`, and `.gif`. Format is inferred from the output extension.
+
+```bash
+forge convert-video <input> <output.ext> [quality]
+# quality: CRF value 0-51 (lower = better), default 23
+
+forge convert-video clip.mov output.mp4
+forge convert-video clip.mp4 output.webm
+forge convert-video clip.mp4 output.gif
+```
+
+---
+
+### `blur-hash` — BlurHash placeholder
+
+Generates a [BlurHash](https://blurha.sh) string for use as a compact image placeholder.
+
+```bash
+forge blur-hash <image>
+# Requires: pip install Pillow blurhash
+
+forge blur-hash hero.jpg
+# → prints: LGF5?xYk^6#M@-5c,1J5@[or[Q6.
+```
+
+Set `X_COMPONENTS` and `Y_COMPONENTS` env vars to control detail (default: 4x3).
+
+---
+
+### `device-frame` — Device mockup frame
+
+Wraps a screenshot in a device frame. Great for App Store listings and marketing assets.
+
+```bash
+forge device-frame <screenshot> [output.png] [device]
+# device: iphone (default), android, browser
+
+forge device-frame screenshot.png framed.png
+forge device-frame screenshot.png framed.png browser
+```
+
+---
+
+### `feature-graphic` — Google Play feature graphic
+
+Generates a Google Play Store feature graphic (1024×500).
+
+```bash
+forge feature-graphic -b <bg> -t <headline> [-l logo] [-s subtitle] [-o output.png]
+
+forge feature-graphic -b bg.jpg -l logo.png -t "App Name" -s "Tagline"
+```
+
+---
+
+### `watermark` — Bulk watermark
+
+Adds a logo or text watermark to all images in a directory.
+
+```bash
+forge watermark <src_dir> <dest_dir> [-l logo] [-t text] [-p position] [-o opacity]
+# position: SouthEast (default), NorthEast, SouthWest, NorthWest, Center
+# opacity: 0-100, default 70
+
+forge watermark ./photos ./watermarked -l logo.png
+forge watermark ./photos ./watermarked -t "© 2025 MyApp" -p SouthWest -o 50
+```
+
+---
+
+### `github-social` — GitHub social preview
+
+Generates a GitHub repository social preview image (1280×640).
+
+```bash
+forge github-social -b <bg> -t <headline> [-l logo] [-s subtitle] [-o output.png]
+
+forge github-social -b bg.jpg -l logo.png -t "my-repo" -s "What it does in one line"
+```
+
+Upload at: **Settings → Social preview → Edit → Upload image**
+
+---
+
+### `email-banner` — Email header banner
+
+Generates an email header banner at 600×200 — the standard email client width.
+
+```bash
+forge email-banner -b <bg> [-l logo] [-t headline] [-s subtitle] [-o output.png]
+
+forge email-banner -b bg.jpg -l logo.png -t "We just launched!" -s "Check it out"
+```
+
+---
+
+### `montage` — Image grid / collage
+
+Arranges a folder of images into a grid.
+
+```bash
+forge montage <images_dir> [output.png] [columns] [tile_size] [gap]
+
+forge montage ./screenshots
+forge montage ./screenshots collage.png 3 600x600 20
+```
+
+---
+
+### `info` — Image inspector
+
+Prints dimensions, format, file size, color space, and EXIF data for one or more images.
+
+```bash
+forge info <image> [image2 ...]
+
+forge info photo.jpg
+forge info *.png
+```
+
+---
+
+### `compare` — Visual diff
+
+Creates a labeled side-by-side (or top/bottom) comparison of two images.
+
+```bash
+forge compare <image_a> <image_b> [output.png] [horizontal|vertical]
+
+forge compare before.png after.png diff.png
+forge compare original.jpg optimized.jpg diff.png vertical
+```
+
+---
+
+### `palette` — Extract dominant colors
+
+Extracts the N most dominant colors from an image as hex codes. Optionally saves a swatch PNG.
+
+```bash
+forge palette <image> [num_colors] [swatch.png]
+
+forge palette logo.png              # prints 6 hex codes
+forge palette photo.jpg 8 swatch.png
+```

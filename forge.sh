@@ -47,6 +47,48 @@ Commands:
 
   promo           Generate marketing images (App Store, social, OG, etc.)
                   forge promo -b <bg> -l <logo> -t <headline> [-s <subtitle>] [-o <dir>]
+
+  srcset          Generate @1x @2x @3x variants for HTML srcset
+                  forge srcset <image> [output_dir] [scales]
+
+  gif-to-video    Convert animated GIF to MP4 + WebM
+                  forge gif-to-video <input.gif> [output_dir]
+
+  video-to-gif    Convert a video clip to an optimized GIF
+                  forge video-to-gif <input.mp4> [output.gif] [fps] [width]
+
+  convert-video   Convert between video formats (MP4, WebM, MOV, etc.)
+                  forge convert-video <input> <output.ext> [quality]
+
+  blur-hash       Generate a BlurHash string for image placeholders
+                  forge blur-hash <image>
+
+  device-frame    Wrap a screenshot in a device mockup frame
+                  forge device-frame <screenshot> [output.png] [iphone|android|browser]
+
+  feature-graphic Google Play Store feature graphic (1024x500)
+                  forge feature-graphic -b <bg> -t <headline> [-l logo] [-s subtitle]
+
+  watermark       Bulk-add logo or text watermark to images
+                  forge watermark <src_dir> <dest_dir> [-l logo] [-t text] [-p position]
+
+  github-social   GitHub repository social preview (1280x640)
+                  forge github-social -b <bg> -t <headline> [-l logo] [-s subtitle]
+
+  email-banner    Email header banner (600x200)
+                  forge email-banner -b <bg> [-l logo] [-t headline] [-s subtitle]
+
+  montage         Arrange images into a grid/collage
+                  forge montage <images_dir> [output.png] [columns] [tile_size] [gap]
+
+  info            Print image metadata (dimensions, format, EXIF)
+                  forge info <image> [image2 ...]
+
+  compare         Side-by-side visual diff of two images
+                  forge compare <image_a> <image_b> [output.png] [horizontal|vertical]
+
+  palette         Extract dominant colors as hex codes
+                  forge palette <image> [num_colors] [swatch.png]
 EOF
 }
 
@@ -64,8 +106,22 @@ case "$CMD" in
   placeholder)   exec "$SCRIPT_DIR/make-placeholder.sh" "$@" ;;
   strip-meta)    exec "$SCRIPT_DIR/strip-metadata.sh" "$@" ;;
   thumbnail)     exec "$SCRIPT_DIR/make-thumbnail.sh" "$@" ;;
-  audit)         exec "$SCRIPT_DIR/audit-images.sh" "$@" ;;
-  promo)         exec "$SCRIPT_DIR/make-promo.sh" "$@" ;;
+  audit)           exec "$SCRIPT_DIR/audit-images.sh" "$@" ;;
+  promo)           exec "$SCRIPT_DIR/make-promo.sh" "$@" ;;
+  srcset)          exec "$SCRIPT_DIR/srcset.sh" "$@" ;;
+  gif-to-video)    exec "$SCRIPT_DIR/gif-to-video.sh" "$@" ;;
+  video-to-gif)    exec "$SCRIPT_DIR/video-to-gif.sh" "$@" ;;
+  convert-video)   exec "$SCRIPT_DIR/convert-video.sh" "$@" ;;
+  blur-hash)       exec "$SCRIPT_DIR/blur-hash.sh" "$@" ;;
+  device-frame)    exec "$SCRIPT_DIR/device-frame.sh" "$@" ;;
+  feature-graphic) exec "$SCRIPT_DIR/make-feature-graphic.sh" "$@" ;;
+  watermark)       exec "$SCRIPT_DIR/watermark.sh" "$@" ;;
+  github-social)   exec "$SCRIPT_DIR/make-github-social.sh" "$@" ;;
+  email-banner)    exec "$SCRIPT_DIR/make-email-banner.sh" "$@" ;;
+  montage)         exec "$SCRIPT_DIR/montage.sh" "$@" ;;
+  info)            exec "$SCRIPT_DIR/info.sh" "$@" ;;
+  compare)         exec "$SCRIPT_DIR/compare.sh" "$@" ;;
+  palette)         exec "$SCRIPT_DIR/palette.sh" "$@" ;;
   ""|-h|--help)  usage ;;
   *)
     echo "Unknown command: $CMD"
