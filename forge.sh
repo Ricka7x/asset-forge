@@ -89,6 +89,45 @@ Commands:
 
   palette         Extract dominant colors as hex codes
                   forge palette <image> [num_colors] [swatch.png]
+
+  trim            Auto-trim transparent/white borders from images
+                  forge trim <file_or_dir> [output_dir] [fuzz%]
+
+  shadow          Add a drop shadow to a PNG
+                  forge shadow <input> [output.png] [blur] [opacity] [offset_x] [offset_y]
+
+  round-corners   Apply rounded corners to any image
+                  forge round-corners <input> [output.png] [radius]
+
+  border          Add a solid border/stroke around images
+                  forge border <file_or_dir> [output_dir] [size] [color]
+
+  add-text        Add a text overlay to an image
+                  forge add-text <input> <text> [output.png] [gravity] [size] [color]
+
+  trim-video      Cut a video to a start/end time range
+                  forge trim-video <input> <start> <end> [output]
+
+  extract-frames  Extract frames from a video as PNG images
+                  forge extract-frames <video> [output_dir] [fps|all]
+
+  compress-video  Aggressively compress a video for sharing
+                  forge compress-video <input> [output] [target_mb]
+
+  pwa-icons       Generate PWA icon set with maskable variants
+                  forge pwa-icons <logo> [output_dir] [bg_color]
+
+  resize          Batch resize images (width, WxH, percentage, etc.)
+                  forge resize <file_or_dir> <spec> [output_dir]
+
+  rename          Batch rename images (prefix, suffix, slugify, sequence)
+                  forge rename <dir> [--prefix str] [--suffix str] [--slugify] [--sequence] [--dry-run]
+
+  duplicates      Find visually similar/duplicate images
+                  forge duplicates <dir> [threshold]
+
+  convert         Convert a single image to a different format
+                  forge convert <input> <output.ext> [quality]
 EOF
 }
 
@@ -122,6 +161,19 @@ case "$CMD" in
   info)            exec "$SCRIPT_DIR/info.sh" "$@" ;;
   compare)         exec "$SCRIPT_DIR/compare.sh" "$@" ;;
   palette)         exec "$SCRIPT_DIR/palette.sh" "$@" ;;
+  trim)            exec "$SCRIPT_DIR/trim.sh" "$@" ;;
+  shadow)          exec "$SCRIPT_DIR/shadow.sh" "$@" ;;
+  round-corners)   exec "$SCRIPT_DIR/round-corners.sh" "$@" ;;
+  border)          exec "$SCRIPT_DIR/border.sh" "$@" ;;
+  add-text)        exec "$SCRIPT_DIR/add-text.sh" "$@" ;;
+  trim-video)      exec "$SCRIPT_DIR/trim-video.sh" "$@" ;;
+  extract-frames)  exec "$SCRIPT_DIR/extract-frames.sh" "$@" ;;
+  compress-video)  exec "$SCRIPT_DIR/compress-video.sh" "$@" ;;
+  pwa-icons)       exec "$SCRIPT_DIR/pwa-icons.sh" "$@" ;;
+  resize)          exec "$SCRIPT_DIR/resize.sh" "$@" ;;
+  rename)          exec "$SCRIPT_DIR/rename.sh" "$@" ;;
+  duplicates)      exec "$SCRIPT_DIR/duplicates.sh" "$@" ;;
+  convert)         exec "$SCRIPT_DIR/convert.sh" "$@" ;;
   ""|-h|--help)  usage ;;
   *)
     echo "Unknown command: $CMD"

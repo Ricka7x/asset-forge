@@ -486,3 +486,196 @@ forge palette <image> [num_colors] [swatch.png]
 forge palette logo.png              # prints 6 hex codes
 forge palette photo.jpg 8 swatch.png
 ```
+
+---
+
+### `trim` — Auto-trim borders
+
+Removes transparent or near-white/black borders from images. Great for cleaning up logo exports.
+
+```bash
+forge trim <file_or_dir> [output_dir] [fuzz]
+# fuzz: color tolerance 0-100%, default 5
+
+forge trim logo.png                    # in-place
+forge trim logo.png trimmed.png
+forge trim ./exports ./trimmed 10      # batch, 10% tolerance
+```
+
+---
+
+### `shadow` — Drop shadow
+
+Adds a drop shadow to a PNG image. Output always PNG to preserve transparency.
+
+```bash
+forge shadow <input> [output.png] [blur] [opacity] [offset_x] [offset_y] [color]
+
+forge shadow icon.png                          # defaults: blur=20 opacity=80 offset=10,10
+forge shadow icon.png shadow.png 30 60 15 15
+forge shadow icon.png shadow.png 20 90 0 0 "#333333"  # centered dark shadow
+```
+
+---
+
+### `round-corners` — Rounded corners
+
+Applies rounded corners to any image. Output is PNG with transparency.
+
+```bash
+forge round-corners <input> [output.png] [radius]
+# radius: px value or percentage, default "10%"
+
+forge round-corners photo.jpg rounded.png
+forge round-corners photo.jpg rounded.png 24    # 24px radius
+forge round-corners photo.jpg rounded.png 15%   # 15% of width
+```
+
+---
+
+### `border` — Add border
+
+Adds a solid border/stroke around images.
+
+```bash
+forge border <file_or_dir> [output_dir] [size] [color]
+
+forge border photo.jpg                        # 4px black border, in-place
+forge border photo.jpg bordered.jpg 8 white
+forge border ./photos ./bordered 2 "#FF0000"  # batch, 2px red
+```
+
+---
+
+### `add-text` — Text overlay
+
+Adds a text overlay to an image. Simpler than `promo` — just text on top of one image.
+
+```bash
+forge add-text <input> <text> [output.png] [gravity] [size] [color] [font]
+# gravity: South (default), North, Center, NorthWest, SouthEast, etc.
+
+forge add-text photo.jpg "Hello World"
+forge add-text photo.jpg "© 2025" caption.jpg South 32 white
+```
+
+---
+
+### `trim-video` — Trim video
+
+Cuts a video clip to a start/end time. Uses stream copy (no re-encode) so it's instant.
+
+```bash
+forge trim-video <input> <start> <end> [output]
+# Times: HH:MM:SS, MM:SS, or plain seconds
+
+forge trim-video demo.mp4 0:30 1:45
+forge trim-video demo.mp4 90 150 clip.mp4
+```
+
+---
+
+### `extract-frames` — Extract video frames
+
+Pulls frames out of a video as numbered PNG files.
+
+```bash
+forge extract-frames <video> [output_dir] [mode]
+# mode: 1 (1fps, default), 0.5 (1 every 2s), 24 (24fps), all (every frame)
+
+forge extract-frames demo.mp4
+forge extract-frames demo.mp4 ./frames all    # every frame
+forge extract-frames demo.mp4 ./frames 0.25  # 1 frame every 4 seconds
+```
+
+---
+
+### `compress-video` — Compress video
+
+Shrinks a video for sharing. Two modes: target file size or quality-based.
+
+```bash
+forge compress-video <input> [output] [target_mb]
+
+forge compress-video video.mp4                    # quality mode (720p max, CRF 28)
+forge compress-video video.mp4 small.mp4 8        # target 8MB (WhatsApp limit)
+forge compress-video video.mp4 email.mp4 25       # target 25MB (email limit)
+```
+
+---
+
+### `pwa-icons` — PWA icon set
+
+Generates a complete PWA icon set including maskable variants with the correct safe zone, plus a `manifest.json` snippet.
+
+```bash
+forge pwa-icons <logo> [output_dir] [bg_color]
+
+forge pwa-icons logo.png
+forge pwa-icons logo.png ./pwa "#1a1a2e"   # dark background for maskable icons
+```
+
+Merge the generated `manifest.json` icons array into your site's `manifest.json`.
+
+---
+
+### `resize` — Batch resize
+
+Resizes images using ImageMagick spec syntax.
+
+```bash
+forge resize <file_or_dir> <spec> [output_dir]
+
+forge resize hero.jpg 1200          # 1200px wide, height auto
+forge resize hero.jpg 1200x630      # fit within box, preserve ratio
+forge resize hero.jpg 1200x630!     # force exact size (may distort)
+forge resize hero.jpg 1200x630^     # fill and crop to 1200x630
+forge resize hero.jpg 50%           # scale to 50%
+forge resize ./photos 800 ./thumbs  # batch
+```
+
+---
+
+### `rename` — Batch rename
+
+Renames images in a directory. Supports prefix, suffix, slugify, and sequential numbering.
+
+```bash
+forge rename <dir> [options]
+
+forge rename ./photos --slugify                    # "My Photo 1.jpg" → "my-photo-1.jpg"
+forge rename ./exports --prefix "app-" --slugify   # → "app-icon-dark.png"
+forge rename ./shots --sequence                    # → "0001.jpg", "0002.jpg" ...
+forge rename ./shots --sequence 10                 # start from 0010
+forge rename ./shots --prefix "hero-" --dry-run   # preview without renaming
+```
+
+---
+
+### `duplicates` — Find duplicate images
+
+Detects visually similar images using perceptual hashing (dHash). Finds near-dupes even if resized or slightly edited.
+
+```bash
+forge duplicates <dir> [threshold]
+# threshold: 0-64 hamming distance, default 6 (0 = exact pixel-identical)
+# Requires: pip install Pillow
+
+forge duplicates ./photos
+forge duplicates ./photos 0    # exact duplicates only
+forge duplicates ./photos 12   # more lenient (catches crops/resizes)
+```
+
+---
+
+### `convert` — Convert image format
+
+Converts a single image to any format. Uses native encoders (`avifenc`, `cwebp`) when available.
+
+```bash
+forge convert <input> <output.ext> [quality]
+
+forge convert logo.png logo.webp
+forge convert photo.jpg photo.avif 85
+forge convert image.webp image.png
+```
