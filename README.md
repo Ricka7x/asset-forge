@@ -72,19 +72,32 @@ Add to your `<head>`:
 
 ### `og-image` — Open Graph image
 
-Resizes and center-crops any image to the Open Graph spec (1200×630).
+Resizes and center-crops any image to the Open Graph spec (1200×630). Text and logo are optional.
 
 ```bash
-forge og-image <image> [output.png] [gravity]
+forge og-image -b <image> [-t headline] [-s subtitle] [-l logo] [-o output.png] [-g gravity] [-c overlay] [-f text_color]
 ```
 
-| Arg | Default | Description |
-|-----|---------|-------------|
-| `gravity` | `Center` | Crop anchor: `Center`, `North`, `South`, `NorthWest`, etc. |
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-b` | required | Background image |
+| `-t` | — | Headline text |
+| `-s` | — | Subtitle text |
+| `-l` | — | Logo (shown on the left) |
+| `-o` | `og-image.png` | Output file |
+| `-g` | `Center` | Crop gravity: `Center`, `North`, `South`, etc. |
+| `-c` | `rgba(0,0,0,0.45)` | Overlay color (only applied when text/logo present) |
+| `-f` | `white` | Text color |
 
 ```bash
-forge og-image hero.jpg og-image.png
-forge og-image photo.jpg og-image.png North
+# Plain crop
+forge og-image -b hero.jpg
+
+# With text
+forge og-image -b hero.jpg -t "App Name" -s "Your tagline"
+
+# With logo + text
+forge og-image -b hero.jpg -l logo.png -t "App Name" -s "Tagline" -o og.png
 ```
 
 ---
