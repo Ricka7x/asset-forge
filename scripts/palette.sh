@@ -18,7 +18,6 @@ COLORS=$($IM "$INPUT" \
   -resize 200x200 \
   +dither -colors "$NUM_COLORS" \
   -unique-colors \
-  -scale 1x1 \
   txt:- 2>/dev/null \
   | grep -oE '#[0-9A-Fa-f]{6}' \
   | head -"$NUM_COLORS")

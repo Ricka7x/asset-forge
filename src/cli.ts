@@ -57,6 +57,8 @@ const main = defineCommand({
     'compress-video':  commands.compressVideo,
     'trim-video':      commands.trimVideo,
     'extract-frames':  commands.extractFrames,
+    // ── Config ─────────────────────────────────────────────
+    'config':          commands.configCmd,
   },
 })
 

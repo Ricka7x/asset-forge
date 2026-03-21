@@ -1,6 +1,7 @@
 import { defineCommand, type ArgsDef } from 'citty'
-import { join, dirname } from 'path'
-import { existsSync } from 'fs'
+import { join, dirname, resolve, isAbsolute } from 'path'
+import { existsSync, mkdirSync } from 'fs'
+import { getOutDir } from './config'
 
 function findScriptsDir(): string {
   // 1. Running from source: bun run src/cli.ts
@@ -22,9 +23,20 @@ function sh(name: string, script: string, description: string, args: ArgsDef = {
     meta: { name, description },
     args,
     run() {
-      const raw = process.argv.slice(3)
+      const outDir = getOutDir()
+      mkdirSync(outDir, { recursive: true })
+
+      // Resolve any existing file/dir paths in argv to absolute so scripts
+      // can find them after we change the working directory.
+      const raw = process.argv.slice(3).map(arg => {
+        if (arg.startsWith('-')) return arg
+        const abs = isAbsolute(arg) ? arg : resolve(process.cwd(), arg)
+        return existsSync(abs) ? abs : arg
+      })
+
       const proc = Bun.spawnSync(['bash', join(SCRIPTS_DIR, `${script}.sh`), ...raw], {
         stdio: ['inherit', 'inherit', 'inherit'],
+        cwd: outDir,
       })
       process.exit(proc.exitCode ?? 0)
     },
@@ -112,7 +124,7 @@ export const addText = sh('add-text', 'add-text', 'Overlay text onto an image', 
   gravity: { type: 'positional', description: 'NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast', default: 'South' },
   size:    { type: 'positional', description: 'Font size in px',                 default: '48' },
   color:   { type: 'positional', description: 'Text color',                      default: 'white' },
-  font:    { type: 'positional', description: 'Font name' },
+  font:    { type: 'positional', description: 'Font name', default: '' },
 })
 
 export const trim = sh('trim', 'trim', 'Auto-trim transparent/uniform borders', {
@@ -298,4 +310,67 @@ export const extractFrames = sh('extract-frames', 'extract-frames', 'Export fram
   input:  { type: 'positional', description: 'Source video',                   required: true },
   output: { type: 'positional', description: 'Output directory' },
   mode:   { type: 'positional', description: 'fps rate or "all" for every frame', default: '1' },
+})
+
+// ─── Config ───────────────────────────────────────────────────────────────────
+
+import chalk from 'chalk'
+import { getConfig, setConfig, getOutDir as _getOutDir } from './config'
+
+export const configCmd = defineCommand({
+  meta: { name: 'config', description: 'Manage forge configuration' },
+  subCommands: {
+    set: defineCommand({
+      meta: { name: 'set', description: 'Set a config value' },
+      args: {
+        key:   { type: 'positional', description: 'Config key (e.g. outDir)', required: true },
+        value: { type: 'positional', description: 'Value to set',             required: true },
+      },
+      run({ args }) {
+        const valid = ['outDir', 'fontBold', 'fontRegular']
+        if (!valid.includes(String(args.key))) {
+          console.error(chalk.red(`Unknown config key: ${args.key}`))
+          console.error(chalk.dim(`  Available keys: ${valid.join(', ')}`))
+          process.exit(1)
+        }
+        setConfig(args.key as 'outDir' | 'fontBold' | 'fontRegular', String(args.value))
+        console.log(chalk.green(`✓ ${args.key} → ${args.value}`))
+      },
+    }),
+    get: defineCommand({
+      meta: { name: 'get', description: 'Get a config value (or show all)' },
+      args: {
+        key: { type: 'positional', description: 'Config key (optional — omit to show all)', default: '' },
+      },
+      run({ args }) {
+        const cfg = getConfig()
+        if (args.key) {
+          const val = cfg[args.key as keyof typeof cfg]
+          console.log(val ?? chalk.dim('(not set)'))
+        } else {
+          const outDir = _getOutDir()
+          const outSource = process.env.FORGE_OUT
+            ? chalk.dim('(from FORGE_OUT)')
+            : cfg.outDir
+            ? chalk.dim('(from config)')
+            : chalk.dim('(default: cwd)')
+          console.log(`outDir       ${chalk.cyan(outDir)}  ${outSource}`)
+
+          const fontBold = process.env.FORGE_FONT_BOLD ?? cfg.fontBold
+          const fontRegular = process.env.FORGE_FONT_REGULAR ?? cfg.fontRegular
+          const fontSource = (env: string | undefined, cfg: string | undefined) =>
+            env ? chalk.dim('(from env)') : cfg ? chalk.dim('(from config)') : chalk.dim('(auto-detect)')
+          console.log(`fontBold     ${chalk.cyan(fontBold ?? 'auto')}  ${fontSource(process.env.FORGE_FONT_BOLD, cfg.fontBold)}`)
+          console.log(`fontRegular  ${chalk.cyan(fontRegular ?? 'auto')}  ${fontSource(process.env.FORGE_FONT_REGULAR, cfg.fontRegular)}`)
+        }
+      },
+    }),
+    reset: defineCommand({
+      meta: { name: 'reset', description: 'Reset all config to defaults' },
+      run() {
+        setConfig('outDir', '')
+        console.log(chalk.green('✓ Config reset to defaults'))
+      },
+    }),
+  },
 })

@@ -13,8 +13,9 @@
 # Requires: ImageMagick (brew install imagemagick)
 # Tip: Use a font name from `convert -list font` for custom fonts.
 
-FONT="${FONT:-Helvetica-Bold}"
-FONT_BODY="${FONT_BODY:-Helvetica}"
+source "$(dirname "$0")/_lib.sh"
+FONT="${FONT:-$(_resolve_font_bold)}"
+FONT_BODY="${FONT_BODY:-$(_resolve_font_regular)}"
 
 usage() {
   sed -n '2,14p' "$0" | sed 's/^# //'
@@ -100,7 +101,6 @@ make_promo() {
     local sub_args=(
       -size "${text_w}x" -background none
       -fill "$TEXT_COLOR" -font "$FONT_BODY" -pointsize "$sub_pt"
-      -alpha set -channel alpha -evaluate multiply 0.8 +channel
       "caption:${SUBTITLE}"
     )
     cmd+=(

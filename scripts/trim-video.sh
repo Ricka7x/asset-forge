@@ -9,7 +9,7 @@ INPUT="${1:?'Usage: ./trim-video.sh <input> <start> <end> [output]'}"
 START="${2:?'Start time required (e.g. 0:30 or 90)'}"
 END="${3:?'End time required (e.g. 1:45 or 105)'}"
 EXT="${INPUT##*.}"
-BASE="${INPUT%.*}"
+BASE="$(basename "${INPUT%.*}")"
 OUTPUT="${4:-${BASE}-trimmed.${EXT}}"
 
 if ! command -v ffmpeg >/dev/null; then

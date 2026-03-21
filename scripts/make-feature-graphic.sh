@@ -3,8 +3,9 @@
 # Generates a Google Play Store feature graphic (1024x500).
 # Requires: ImageMagick
 
-FONT="${FONT:-Helvetica-Bold}"
-FONT_BODY="${FONT_BODY:-Helvetica}"
+source "$(dirname "$0")/_lib.sh"
+FONT="${FONT:-$(_resolve_font_bold)}"
+FONT_BODY="${FONT_BODY:-$(_resolve_font_regular)}"
 
 BG="" LOGO="" HEADLINE="" SUBTITLE=""
 OUTPUT="feature-graphic.png"
@@ -59,7 +60,6 @@ if [ -n "$SUBTITLE" ]; then
   cmd+=(
     "(" -size "${TEXT_W}x" -background none -fill "$TEXT_COLOR"
         -font "$FONT_BODY" -pointsize 36
-        -alpha set -channel alpha -evaluate multiply 0.8 +channel
         "caption:${SUBTITLE}" ")"
     -gravity Center -geometry "+0+50" -composite
   )

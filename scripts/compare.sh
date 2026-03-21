@@ -5,6 +5,8 @@
 # Adds labels with filenames.
 # Requires: ImageMagick
 
+source "$(dirname "$0")/_lib.sh"
+
 IMG_A="${1:?'Usage: ./compare.sh <image_a> <image_b> [output.png] [direction]'}"
 IMG_B="${2:?'Usage: ./compare.sh <image_a> <image_b> [output.png] [direction]'}"
 OUTPUT="${3:-compare.png}"
@@ -15,7 +17,7 @@ elif command -v convert >/dev/null; then IM="convert"
 else echo "Error: ImageMagick not found. Install with: brew install imagemagick"; exit 1; fi
 
 LABEL_H=40
-LABEL_FONT="Helvetica"
+LABEL_FONT="$(_resolve_font_regular)"
 LABEL_PT=24
 
 label_image() {

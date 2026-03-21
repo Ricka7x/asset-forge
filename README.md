@@ -40,6 +40,54 @@ asset-forge [command] [options]
 
 Run without arguments to see the banner and version info.
 
+## Configuration
+
+Settings are stored in `~/.config/asset-forge/config.json`.
+
+```bash
+forge config set outDir ~/Desktop/assets   # default output directory
+forge config set fontBold /path/to/font.ttf    # bold font for text commands
+forge config set fontRegular /path/to/font.ttf # regular font for text commands
+forge config get                               # show all current settings
+forge config reset                             # restore defaults
+```
+
+### Output directory
+
+By default all output files go to the current working directory. Set a persistent default:
+
+```bash
+forge config set outDir ~/Desktop/assets
+```
+
+Override for a single run with the `FORGE_OUT` env var:
+
+```bash
+FORGE_OUT=/tmp/preview forge og-image -b photo.jpg -o og.png
+```
+
+### Fonts
+
+Text commands (`og-image`, `promo`, `add-text`, etc.) auto-detect a usable font via:
+
+1. `FORGE_FONT_BOLD` / `FORGE_FONT_REGULAR` env vars (per-run)
+2. `forge config set fontBold` / `forge config set fontRegular` (persistent)
+3. `fc-match` — asks the OS for the best available sans-serif font
+4. Known system font paths (macOS + common Linux distros)
+
+To use a specific font persistently:
+
+```bash
+forge config set fontBold /System/Library/Fonts/Supplemental/Arial\ Bold.ttf
+forge config set fontRegular /System/Library/Fonts/Supplemental/Arial.ttf
+```
+
+Or for a single run:
+
+```bash
+FORGE_FONT_BOLD=/path/to/MyFont-Bold.ttf forge promo -b bg.jpg -l logo.png -t "Hello"
+```
+
 ## Publishing to Homebrew
 
 ### 1. Push the code to GitHub
@@ -376,12 +424,7 @@ Outputs:
 | `promo-twitter-banner.png` | 1500×500 | Twitter/X profile banner |
 | `promo-og.png` | 1200×630 | Open Graph / LinkedIn share |
 
-> Tip: set `FONT` and `FONT_BODY` env vars to use custom fonts.
-> List available fonts with: `convert -list font`
-
-```bash
-FONT="Futura-Bold" FONT_BODY="Futura" asset-forge promo -b bg.jpg -l logo.png -t "Hello World"
-```
+> Tip: fonts are auto-detected. To use a custom font see the [Configuration](#configuration) section.
 
 ---
 

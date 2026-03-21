@@ -5,11 +5,14 @@
 # opacity: 0-100, default 70
 # Requires: ImageMagick
 
+source "$(dirname "$0")/_lib.sh"
+
 SRC_DIR="${1:?'Usage: ./watermark.sh <src_dir> <dest_dir> [-l logo] [-t text] [-p position] [-o opacity]'}"
 DEST_DIR="${2:?'Usage: ./watermark.sh <src_dir> <dest_dir> [-l logo] [-t text] [-p position] [-o opacity]'}"
 shift 2
 
 LOGO="" WM_TEXT="" POSITION="SouthEast" OPACITY=70
+FONT="$(_resolve_font_regular)"
 
 while getopts "l:t:p:o:h" opt; do
   case $opt in
@@ -50,7 +53,7 @@ find "$SRC_DIR" -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -
   else
     # Text watermark
     $IM "$file" \
-      -font Helvetica -pointsize 36 \
+      -font "$FONT" -pointsize 36 \
       -fill "rgba(255,255,255,$(echo "scale=2; $OPACITY/100" | bc))" \
       -gravity "$POSITION" -annotate "+20+20" "$WM_TEXT" \
       "$out"

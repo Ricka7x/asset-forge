@@ -7,13 +7,15 @@
 # font:    font name, default Helvetica-Bold
 # Requires: ImageMagick
 
+source "$(dirname "$0")/_lib.sh"
+
 INPUT="${1:?'Usage: ./add-text.sh <input> <text> [output.png] [gravity] [size] [color] [font]'}"
 TEXT="${2:?'Text required'}"
 OUTPUT="${3:-with-text.png}"
 GRAVITY="${4:-South}"
 FONT_SIZE="${5:-48}"
 COLOR="${6:-white}"
-FONT="${7:-${FONT:-Helvetica-Bold}}"
+FONT="${7:-${FONT:-$(_resolve_font_bold)}}"
 
 if command -v magick >/dev/null; then IM="magick"
 elif command -v convert >/dev/null; then IM="convert"

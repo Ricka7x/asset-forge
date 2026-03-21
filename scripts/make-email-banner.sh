@@ -3,8 +3,9 @@
 # Generates an email header banner (600x200 — standard email width).
 # Requires: ImageMagick
 
-FONT="${FONT:-Helvetica-Bold}"
-FONT_BODY="${FONT_BODY:-Helvetica}"
+source "$(dirname "$0")/_lib.sh"
+FONT="${FONT:-$(_resolve_font_bold)}"
+FONT_BODY="${FONT_BODY:-$(_resolve_font_regular)}"
 
 BG="" LOGO="" HEADLINE="" SUBTITLE=""
 OUTPUT="email-banner.png"
@@ -66,7 +67,6 @@ if [ -n "$SUBTITLE" ]; then
   cmd+=(
     "(" -size "${TEXT_W}x" -background none -fill "$TEXT_COLOR"
         -font "$FONT_BODY" -pointsize 20
-        -alpha set -channel alpha -evaluate multiply 0.80 +channel
         "caption:${SUBTITLE}" ")"
     -gravity Center -geometry "${TEXT_OFFSET_X}+25" -composite
   )

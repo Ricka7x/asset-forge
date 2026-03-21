@@ -7,7 +7,7 @@
 
 INPUT="${1:?'Usage: ./compress-video.sh <input> [output] [target_size_mb]'}"
 EXT="${INPUT##*.}"
-BASE="${INPUT%.*}"
+BASE="$(basename "${INPUT%.*}")"
 OUTPUT="${2:-${BASE}-compressed.${EXT}}"
 TARGET_MB="${3:-}"
 
