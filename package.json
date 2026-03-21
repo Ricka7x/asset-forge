@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "The complete asset toolkit for developers",
   "bin": {
-    "asset-forge": "./dist/asset-forge"
+    "asset-forge": "./dist/asset-forge",
+    "forge": "./dist/asset-forge"
   },
   "scripts": {
     "dev": "bun run src/cli.ts",

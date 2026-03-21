@@ -33,6 +33,7 @@ class AssetForge < Formula
     os   = OS.mac? ? "darwin" : "linux"
     arch = Hardware::CPU.arm? ? "arm64" : "x64"
     bin.install "asset-forge-#{os}-#{arch}" => "asset-forge"
+    bin.install_symlink "asset-forge" => "forge"
 
     scripts_dir = libexec/"asset-forge/scripts"
     scripts_dir.mkpath
