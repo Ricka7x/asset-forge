@@ -1,0 +1,10 @@
+dist/
+node_modules/
+tests/out/
+*.sha256
+*.bun-build
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride

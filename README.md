@@ -1,24 +1,131 @@
 # asset-forge
 
-A collection of image processing scripts for web and app development. Use them individually or through the unified `forge` entrypoint.
+The complete asset toolkit for developers. Generate app icons, favicons, OG images, video conversions, and more — from the command line.
 
-## Prerequisites
+## Installation
+
+### Homebrew (recommended)
 
 ```bash
-brew install imagemagick   # required by all scripts
+brew tap YOUR_USERNAME/asset-forge
+brew install asset-forge
+```
+
+### Build from source
+
+Requires [Bun](https://bun.sh) and [ImageMagick](https://imagemagick.org).
+
+```bash
+git clone https://github.com/YOUR_USERNAME/asset-forge
+cd asset-forge
+bun install
+bun run build
+ln -sf $(pwd)/dist/asset-forge /usr/local/bin/asset-forge
+```
+
+## Dependencies
+
+```bash
+brew install imagemagick   # required by all image commands
+brew install ffmpeg        # required by all video commands
 brew install svgo          # optional — SVG optimization
 brew install exiftool      # optional — faster metadata stripping
 ```
 
-## Setup
+## Usage
 
 ```bash
-chmod +x forge.sh
-# Optionally symlink to use globally:
-mkdir -p ~/.local/bin
-ln -s "$(pwd)/forge.sh" ~/.local/bin/forge
-# Make sure ~/.local/bin is on your PATH (add to ~/.zshrc if needed):
-# export PATH="$HOME/.local/bin:$PATH"
+asset-forge [command] [options]
+```
+
+Run without arguments to see the banner and version info.
+
+## Publishing to Homebrew
+
+### 1. Push the code to GitHub
+
+Create a repo named `asset-forge` on GitHub and push:
+
+```bash
+git remote add origin https://github.com/YOUR_USERNAME/asset-forge.git
+git push -u origin main
+```
+
+### 2. Create a Homebrew tap repo
+
+Create a **second** GitHub repo named exactly `homebrew-asset-forge` (the `homebrew-` prefix is required by Homebrew). Leave it empty for now.
+
+### 3. Tag a release — this triggers the build
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The GitHub Actions workflow (`.github/workflows/release.yml`) will:
+
+- Build binaries for macOS arm64, macOS x64, and Linux x64
+- Create a GitHub Release with the binaries and their `.sha256` files
+
+### 4. Copy the SHA256 hashes
+
+Once the release is created, open it on GitHub and download (or view) the `.sha256` files. You'll need three values:
+
+- `asset-forge-darwin-arm64.sha256`
+- `asset-forge-darwin-x64.sha256`
+- `asset-forge-linux-x64.sha256`
+
+Or grab them from the terminal:
+
+```bash
+curl -sL https://github.com/YOUR_USERNAME/asset-forge/releases/download/v0.1.0/asset-forge-darwin-arm64.sha256
+```
+
+### 5. Update the formula
+
+Edit `Formula/asset-forge.rb` and replace:
+
+- `YOUR_USERNAME` → your actual GitHub username
+- All three `PLACEHOLDER_*_SHA256` values with the real hashes from the release
+
+### 6. Push the formula to the tap repo
+
+```bash
+cp Formula/asset-forge.rb ../homebrew-asset-forge/
+cd ../homebrew-asset-forge
+git init
+git add asset-forge.rb
+git commit -m "Add asset-forge formula v0.1.0"
+git remote add origin https://github.com/YOUR_USERNAME/homebrew-asset-forge.git
+git push -u origin main
+```
+
+### 7. Test the tap
+
+```bash
+brew tap YOUR_USERNAME/asset-forge
+brew install asset-forge
+asset-forge --help
+```
+
+### 8. Updating for future releases
+
+For every new version:
+
+1. Bump `version` in `package.json` and `src/banner.ts`
+2. Push a new tag: `git tag v0.2.0 && git push origin v0.2.0`
+3. Wait for the GitHub Actions release to finish
+4. Update `version` and the three `sha256` values in `Formula/asset-forge.rb`
+5. Push the updated formula to `homebrew-asset-forge`
+
+---
+
+## Development
+
+```bash
+bun run dev        # run from source
+bun run build      # compile to dist/asset-forge
+bun run build:all  # cross-compile for macOS arm64/x64 and Linux x64
 ```
 
 ---
@@ -30,7 +137,7 @@ ln -s "$(pwd)/forge.sh" ~/.local/bin/forge
 Compresses raster images to the best available modern format (AVIF → WebP → original). One output per input file.
 
 ```bash
-forge optimize <src_dir> <dest_dir> [quality]
+asset-forge optimize <src_dir> <dest_dir> [quality]
 ```
 
 | Arg | Default | Description |
@@ -38,9 +145,9 @@ forge optimize <src_dir> <dest_dir> [quality]
 | `quality` | `95` | 1–100, applies to all formats. Also settable via `QUALITY=` env var |
 
 ```bash
-forge optimize ./images ./public/img
-forge optimize ./images ./public/img 80
-QUALITY=75 forge optimize ./images ./dist/img
+asset-forge optimize ./images ./public/img
+asset-forge optimize ./images ./public/img 80
+QUALITY=75 asset-forge optimize ./images ./dist/img
 ```
 
 ---
@@ -50,13 +157,13 @@ QUALITY=75 forge optimize ./images ./dist/img
 Generates a complete favicon set and `site.webmanifest` for web projects.
 
 ```bash
-forge favicon <logo> [output_dir]
+asset-forge favicon <logo> [output_dir]
 ```
 
 Outputs: `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest`
 
 ```bash
-forge favicon logo.png ./public
+asset-forge favicon logo.png ./public
 ```
 
 Add to your `<head>`:
@@ -75,7 +182,7 @@ Add to your `<head>`:
 Resizes and center-crops any image to the Open Graph spec (1200×630). Text and logo are optional.
 
 ```bash
-forge og-image -b <image> [-t headline] [-s subtitle] [-l logo] [-o output.png] [-g gravity] [-c overlay] [-f text_color]
+asset-forge og-image -b <image> [-t headline] [-s subtitle] [-l logo] [-o output.png] [-g gravity] [-c overlay] [-f text_color]
 ```
 
 | Flag | Default | Description |
@@ -91,13 +198,13 @@ forge og-image -b <image> [-t headline] [-s subtitle] [-l logo] [-o output.png] 
 
 ```bash
 # Plain crop
-forge og-image -b hero.jpg
+asset-forge og-image -b hero.jpg
 
 # With text
-forge og-image -b hero.jpg -t "App Name" -s "Your tagline"
+asset-forge og-image -b hero.jpg -t "App Name" -s "Your tagline"
 
 # With logo + text
-forge og-image -b hero.jpg -l logo.png -t "App Name" -s "Tagline" -o og.png
+asset-forge og-image -b hero.jpg -l logo.png -t "App Name" -s "Tagline" -o og.png
 ```
 
 ---
@@ -107,14 +214,14 @@ forge og-image -b hero.jpg -l logo.png -t "App Name" -s "Tagline" -o og.png
 Generates `AppIcon.appiconset` for macOS Xcode projects. Applies the macOS squircle shape with 10% padding on each side.
 
 ```bash
-forge appiconset <logo> [output_dir]
+asset-forge appiconset <logo> [output_dir]
 ```
 
 Outputs all required sizes (16px–1024px) + `Contents.json`. Drop the folder directly into your `.xcassets`.
 
 ```bash
-forge appiconset logo.png
-forge appiconset logo.png MyApp.appiconset
+asset-forge appiconset logo.png
+asset-forge appiconset logo.png MyApp.appiconset
 ```
 
 ---
@@ -124,13 +231,13 @@ forge appiconset logo.png MyApp.appiconset
 Generates `AppIcon.appiconset` for iOS Xcode projects. No squircle applied — iOS clips automatically.
 
 ```bash
-forge ios-icons <logo> [output_dir]
+asset-forge ios-icons <logo> [output_dir]
 ```
 
 Covers all iOS/iPadOS sizes (20px–1024px) + `Contents.json`.
 
 ```bash
-forge ios-icons logo.png
+asset-forge ios-icons logo.png
 ```
 
 ---
@@ -140,14 +247,14 @@ forge ios-icons logo.png
 Generates the full `res/mipmap-*` folder structure for Android projects, including round variants and a Play Store icon.
 
 ```bash
-forge android-icons <logo> [output_dir]
+asset-forge android-icons <logo> [output_dir]
 ```
 
 Outputs `ic_launcher.png` + `ic_launcher_round.png` at all densities (mdpi → xxxhdpi) and a `ic_launcher-playstore.png` (512×512).
 
 ```bash
-forge android-icons logo.png
-forge android-icons logo.png app/src/main/res
+asset-forge android-icons logo.png
+asset-forge android-icons logo.png app/src/main/res
 ```
 
 ---
@@ -157,7 +264,7 @@ forge android-icons logo.png app/src/main/res
 Combines all images in a directory into a single horizontal sprite sheet with accompanying CSS.
 
 ```bash
-forge sprites <images_dir> [output_name] [css_prefix]
+asset-forge sprites <images_dir> [output_name] [css_prefix]
 ```
 
 | Arg | Default | Description |
@@ -166,7 +273,7 @@ forge sprites <images_dir> [output_name] [css_prefix]
 | `css_prefix` | `.sprite` | CSS class prefix for generated selectors |
 
 ```bash
-forge sprites ./icons sprite .icon
+asset-forge sprites ./icons sprite .icon
 ```
 
 Generated CSS usage:
@@ -181,18 +288,18 @@ Generated CSS usage:
 Generates a tiny (20px wide) blurred image for lazy-loading placeholders. Prints a base64 data URI to stdout.
 
 ```bash
-forge placeholder <image> [output.png]
+asset-forge placeholder <image> [output.png]
 ```
 
 ```bash
 # Print data URI
-forge placeholder hero.jpg
+asset-forge placeholder hero.jpg
 
 # Save PNG + print data URI
-forge placeholder hero.jpg hero-placeholder.png
+asset-forge placeholder hero.jpg hero-placeholder.png
 
 # Capture into a variable
-DATA_URI=$(forge placeholder hero.jpg)
+DATA_URI=$(asset-forge placeholder hero.jpg)
 ```
 
 Use the data URI as an `src` or CSS `background-image` to show while the full image loads.
@@ -204,12 +311,12 @@ Use the data URI as an `src` or CSS `background-image` to show while the full im
 Removes all EXIF/metadata from images in-place. Uses `exiftool` if available, falls back to ImageMagick.
 
 ```bash
-forge strip-meta <file_or_dir>
+asset-forge strip-meta <file_or_dir>
 ```
 
 ```bash
-forge strip-meta photo.jpg
-forge strip-meta ./uploads
+asset-forge strip-meta photo.jpg
+asset-forge strip-meta ./uploads
 ```
 
 ---
@@ -219,7 +326,7 @@ forge strip-meta ./uploads
 Batch generates center-cropped thumbnails from a directory, preserving folder structure.
 
 ```bash
-forge thumbnail <src_dir> <dest_dir> [size] [gravity]
+asset-forge thumbnail <src_dir> <dest_dir> [size] [gravity]
 ```
 
 | Arg | Default | Description |
@@ -228,19 +335,19 @@ forge thumbnail <src_dir> <dest_dir> [size] [gravity]
 | `gravity` | `Center` | Crop anchor: `Center`, `North`, `South`, etc. |
 
 ```bash
-forge thumbnail ./photos ./thumbs
-forge thumbnail ./photos ./thumbs 800x600
-forge thumbnail ./photos ./thumbs 400x400 North
+asset-forge thumbnail ./photos ./thumbs
+asset-forge thumbnail ./photos ./thumbs 800x600
+asset-forge thumbnail ./photos ./thumbs 400x400 North
 ```
 
 ---
 
 ### `promo` — Marketing promo images
 
-Generates a full set of marketing assets from a background image, logo, headline, and subtitle. Ideal for app launches, social campaigns, and store listings.
+Generates a full set of marketing assets from a background image, logo, headline, and subtitle.
 
 ```bash
-forge promo -b <background> -l <logo> -t <headline> [-s <subtitle>] [-c <overlay>] [-f <text_color>] [-o <output_dir>]
+asset-forge promo -b <background> -l <logo> -t <headline> [-s <subtitle>] [-c <overlay>] [-f <text_color>] [-o <output_dir>]
 ```
 
 | Flag | Default | Description |
@@ -254,8 +361,8 @@ forge promo -b <background> -l <logo> -t <headline> [-s <subtitle>] [-c <overlay
 | `-o` | `./promo` | Output directory |
 
 ```bash
-forge promo -b background.jpg -l logo.png -t "Your App Name" -s "The tagline that sells it"
-forge promo -b bg.jpg -l logo.png -t "Launch Sale" -s "50% off today only" -c "rgba(0,0,80,0.6)" -o ./marketing
+asset-forge promo -b background.jpg -l logo.png -t "Your App Name" -s "The tagline that sells it"
+asset-forge promo -b bg.jpg -l logo.png -t "Launch Sale" -s "50% off today only" -c "rgba(0,0,80,0.6)" -o ./marketing
 ```
 
 Outputs:
@@ -273,7 +380,7 @@ Outputs:
 > List available fonts with: `convert -list font`
 
 ```bash
-FONT="Futura-Bold" FONT_BODY="Futura" forge promo -b bg.jpg -l logo.png -t "Hello World"
+FONT="Futura-Bold" FONT_BODY="Futura" asset-forge promo -b bg.jpg -l logo.png -t "Hello World"
 ```
 
 ---
@@ -283,7 +390,7 @@ FONT="Futura-Bold" FONT_BODY="Futura" forge promo -b bg.jpg -l logo.png -t "Hell
 Scans a directory and reports potential issues.
 
 ```bash
-forge audit <dir> [size_threshold_kb]
+asset-forge audit <dir> [size_threshold_kb]
 ```
 
 Checks for:
@@ -294,8 +401,8 @@ Checks for:
 - Suspiciously small images (<10px)
 
 ```bash
-forge audit ./public/images
-forge audit ./public/images 100
+asset-forge audit ./public/images
+asset-forge audit ./public/images 100
 ```
 
 ---
@@ -305,11 +412,11 @@ forge audit ./public/images 100
 Generates `@1x`, `@2x`, `@3x` variants and prints the ready-to-use HTML `srcset` attribute.
 
 ```bash
-forge srcset <image> [output_dir] [scales]
+asset-forge srcset <image> [output_dir] [scales]
 # scales: comma-separated, default "1,2,3"
 
-forge srcset hero.png ./img
-forge srcset logo.png ./img 1,2       # skip @3x
+asset-forge srcset hero.png ./img
+asset-forge srcset logo.png ./img 1,2       # skip @3x
 ```
 
 ---
@@ -319,9 +426,9 @@ forge srcset logo.png ./img 1,2       # skip @3x
 Converts an animated GIF to `.mp4` + `.webm` for web performance. Prints the HTML `<video>` snippet.
 
 ```bash
-forge gif-to-video <input.gif> [output_dir]
+asset-forge gif-to-video <input.gif> [output_dir]
 
-forge gif-to-video animation.gif ./video
+asset-forge gif-to-video animation.gif ./video
 ```
 
 ---
@@ -331,10 +438,10 @@ forge gif-to-video animation.gif ./video
 Converts a video clip to an optimized GIF using a 2-pass palette approach for best color quality.
 
 ```bash
-forge video-to-gif <input_video> [output.gif] [fps] [width]
+asset-forge video-to-gif <input_video> [output.gif] [fps] [width]
 
-forge video-to-gif demo.mp4
-forge video-to-gif demo.mp4 demo.gif 12 320   # 12fps, 320px wide
+asset-forge video-to-gif demo.mp4
+asset-forge video-to-gif demo.mp4 demo.gif 12 320   # 12fps, 320px wide
 ```
 
 ---
@@ -344,12 +451,12 @@ forge video-to-gif demo.mp4 demo.gif 12 320   # 12fps, 320px wide
 Converts between `.mp4`, `.webm`, `.mov`, and `.gif`. Format is inferred from the output extension.
 
 ```bash
-forge convert-video <input> <output.ext> [quality]
+asset-forge convert-video <input> <output.ext> [quality]
 # quality: CRF value 0-51 (lower = better), default 23
 
-forge convert-video clip.mov output.mp4
-forge convert-video clip.mp4 output.webm
-forge convert-video clip.mp4 output.gif
+asset-forge convert-video clip.mov output.mp4
+asset-forge convert-video clip.mp4 output.webm
+asset-forge convert-video clip.mp4 output.gif
 ```
 
 ---
@@ -359,10 +466,10 @@ forge convert-video clip.mp4 output.gif
 Generates a [BlurHash](https://blurha.sh) string for use as a compact image placeholder.
 
 ```bash
-forge blur-hash <image>
+asset-forge blur-hash <image>
 # Requires: pip install Pillow blurhash
 
-forge blur-hash hero.jpg
+asset-forge blur-hash hero.jpg
 # → prints: LGF5?xYk^6#M@-5c,1J5@[or[Q6.
 ```
 
@@ -375,11 +482,11 @@ Set `X_COMPONENTS` and `Y_COMPONENTS` env vars to control detail (default: 4x3).
 Wraps a screenshot in a device frame. Great for App Store listings and marketing assets.
 
 ```bash
-forge device-frame <screenshot> [output.png] [device]
+asset-forge device-frame <screenshot> [output.png] [device]
 # device: iphone (default), android, browser
 
-forge device-frame screenshot.png framed.png
-forge device-frame screenshot.png framed.png browser
+asset-forge device-frame screenshot.png framed.png
+asset-forge device-frame screenshot.png framed.png browser
 ```
 
 ---
@@ -389,9 +496,9 @@ forge device-frame screenshot.png framed.png browser
 Generates a Google Play Store feature graphic (1024×500).
 
 ```bash
-forge feature-graphic -b <bg> -t <headline> [-l logo] [-s subtitle] [-o output.png]
+asset-forge feature-graphic -b <bg> -t <headline> [-l logo] [-s subtitle] [-o output.png]
 
-forge feature-graphic -b bg.jpg -l logo.png -t "App Name" -s "Tagline"
+asset-forge feature-graphic -b bg.jpg -l logo.png -t "App Name" -s "Tagline"
 ```
 
 ---
@@ -401,12 +508,12 @@ forge feature-graphic -b bg.jpg -l logo.png -t "App Name" -s "Tagline"
 Adds a logo or text watermark to all images in a directory.
 
 ```bash
-forge watermark <src_dir> <dest_dir> [-l logo] [-t text] [-p position] [-o opacity]
+asset-forge watermark <src_dir> <dest_dir> [-l logo] [-t text] [-p position] [-o opacity]
 # position: SouthEast (default), NorthEast, SouthWest, NorthWest, Center
 # opacity: 0-100, default 70
 
-forge watermark ./photos ./watermarked -l logo.png
-forge watermark ./photos ./watermarked -t "© 2025 MyApp" -p SouthWest -o 50
+asset-forge watermark ./photos ./watermarked -l logo.png
+asset-forge watermark ./photos ./watermarked -t "© 2025 MyApp" -p SouthWest -o 50
 ```
 
 ---
@@ -416,9 +523,9 @@ forge watermark ./photos ./watermarked -t "© 2025 MyApp" -p SouthWest -o 50
 Generates a GitHub repository social preview image (1280×640).
 
 ```bash
-forge github-social -b <bg> -t <headline> [-l logo] [-s subtitle] [-o output.png]
+asset-forge github-social -b <bg> -t <headline> [-l logo] [-s subtitle] [-o output.png]
 
-forge github-social -b bg.jpg -l logo.png -t "my-repo" -s "What it does in one line"
+asset-forge github-social -b bg.jpg -l logo.png -t "my-repo" -s "What it does in one line"
 ```
 
 Upload at: **Settings → Social preview → Edit → Upload image**
@@ -430,9 +537,9 @@ Upload at: **Settings → Social preview → Edit → Upload image**
 Generates an email header banner at 600×200 — the standard email client width.
 
 ```bash
-forge email-banner -b <bg> [-l logo] [-t headline] [-s subtitle] [-o output.png]
+asset-forge email-banner -b <bg> [-l logo] [-t headline] [-s subtitle] [-o output.png]
 
-forge email-banner -b bg.jpg -l logo.png -t "We just launched!" -s "Check it out"
+asset-forge email-banner -b bg.jpg -l logo.png -t "We just launched!" -s "Check it out"
 ```
 
 ---
@@ -442,10 +549,10 @@ forge email-banner -b bg.jpg -l logo.png -t "We just launched!" -s "Check it out
 Arranges a folder of images into a grid.
 
 ```bash
-forge montage <images_dir> [output.png] [columns] [tile_size] [gap]
+asset-forge montage <images_dir> [output.png] [columns] [tile_size] [gap]
 
-forge montage ./screenshots
-forge montage ./screenshots collage.png 3 600x600 20
+asset-forge montage ./screenshots
+asset-forge montage ./screenshots collage.png 3 600x600 20
 ```
 
 ---
@@ -455,10 +562,10 @@ forge montage ./screenshots collage.png 3 600x600 20
 Prints dimensions, format, file size, color space, and EXIF data for one or more images.
 
 ```bash
-forge info <image> [image2 ...]
+asset-forge info <image> [image2 ...]
 
-forge info photo.jpg
-forge info *.png
+asset-forge info photo.jpg
+asset-forge info *.png
 ```
 
 ---
@@ -468,10 +575,10 @@ forge info *.png
 Creates a labeled side-by-side (or top/bottom) comparison of two images.
 
 ```bash
-forge compare <image_a> <image_b> [output.png] [horizontal|vertical]
+asset-forge compare <image_a> <image_b> [output.png] [horizontal|vertical]
 
-forge compare before.png after.png diff.png
-forge compare original.jpg optimized.jpg diff.png vertical
+asset-forge compare before.png after.png diff.png
+asset-forge compare original.jpg optimized.jpg diff.png vertical
 ```
 
 ---
@@ -481,10 +588,10 @@ forge compare original.jpg optimized.jpg diff.png vertical
 Extracts the N most dominant colors from an image as hex codes. Optionally saves a swatch PNG.
 
 ```bash
-forge palette <image> [num_colors] [swatch.png]
+asset-forge palette <image> [num_colors] [swatch.png]
 
-forge palette logo.png              # prints 6 hex codes
-forge palette photo.jpg 8 swatch.png
+asset-forge palette logo.png              # prints 6 hex codes
+asset-forge palette photo.jpg 8 swatch.png
 ```
 
 ---
@@ -494,12 +601,12 @@ forge palette photo.jpg 8 swatch.png
 Removes transparent or near-white/black borders from images. Great for cleaning up logo exports.
 
 ```bash
-forge trim <file_or_dir> [output_dir] [fuzz]
+asset-forge trim <file_or_dir> [output_dir] [fuzz]
 # fuzz: color tolerance 0-100%, default 5
 
-forge trim logo.png                    # in-place
-forge trim logo.png trimmed.png
-forge trim ./exports ./trimmed 10      # batch, 10% tolerance
+asset-forge trim logo.png                    # in-place
+asset-forge trim logo.png trimmed.png
+asset-forge trim ./exports ./trimmed 10      # batch, 10% tolerance
 ```
 
 ---
@@ -509,11 +616,11 @@ forge trim ./exports ./trimmed 10      # batch, 10% tolerance
 Adds a drop shadow to a PNG image. Output always PNG to preserve transparency.
 
 ```bash
-forge shadow <input> [output.png] [blur] [opacity] [offset_x] [offset_y] [color]
+asset-forge shadow <input> [output.png] [blur] [opacity] [offset_x] [offset_y] [color]
 
-forge shadow icon.png                          # defaults: blur=20 opacity=80 offset=10,10
-forge shadow icon.png shadow.png 30 60 15 15
-forge shadow icon.png shadow.png 20 90 0 0 "#333333"  # centered dark shadow
+asset-forge shadow icon.png                          # defaults: blur=20 opacity=80 offset=10,10
+asset-forge shadow icon.png shadow.png 30 60 15 15
+asset-forge shadow icon.png shadow.png 20 90 0 0 "#333333"  # centered dark shadow
 ```
 
 ---
@@ -523,12 +630,12 @@ forge shadow icon.png shadow.png 20 90 0 0 "#333333"  # centered dark shadow
 Applies rounded corners to any image. Output is PNG with transparency.
 
 ```bash
-forge round-corners <input> [output.png] [radius]
+asset-forge round-corners <input> [output.png] [radius]
 # radius: px value or percentage, default "10%"
 
-forge round-corners photo.jpg rounded.png
-forge round-corners photo.jpg rounded.png 24    # 24px radius
-forge round-corners photo.jpg rounded.png 15%   # 15% of width
+asset-forge round-corners photo.jpg rounded.png
+asset-forge round-corners photo.jpg rounded.png 24    # 24px radius
+asset-forge round-corners photo.jpg rounded.png 15%   # 15% of width
 ```
 
 ---
@@ -538,11 +645,11 @@ forge round-corners photo.jpg rounded.png 15%   # 15% of width
 Adds a solid border/stroke around images.
 
 ```bash
-forge border <file_or_dir> [output_dir] [size] [color]
+asset-forge border <file_or_dir> [output_dir] [size] [color]
 
-forge border photo.jpg                        # 4px black border, in-place
-forge border photo.jpg bordered.jpg 8 white
-forge border ./photos ./bordered 2 "#FF0000"  # batch, 2px red
+asset-forge border photo.jpg                        # 4px black border, in-place
+asset-forge border photo.jpg bordered.jpg 8 white
+asset-forge border ./photos ./bordered 2 "#FF0000"  # batch, 2px red
 ```
 
 ---
@@ -552,11 +659,11 @@ forge border ./photos ./bordered 2 "#FF0000"  # batch, 2px red
 Adds a text overlay to an image. Simpler than `promo` — just text on top of one image.
 
 ```bash
-forge add-text <input> <text> [output.png] [gravity] [size] [color] [font]
+asset-forge add-text <input> <text> [output.png] [gravity] [size] [color] [font]
 # gravity: South (default), North, Center, NorthWest, SouthEast, etc.
 
-forge add-text photo.jpg "Hello World"
-forge add-text photo.jpg "© 2025" caption.jpg South 32 white
+asset-forge add-text photo.jpg "Hello World"
+asset-forge add-text photo.jpg "© 2025" caption.jpg South 32 white
 ```
 
 ---
@@ -566,11 +673,11 @@ forge add-text photo.jpg "© 2025" caption.jpg South 32 white
 Cuts a video clip to a start/end time. Uses stream copy (no re-encode) so it's instant.
 
 ```bash
-forge trim-video <input> <start> <end> [output]
+asset-forge trim-video <input> <start> <end> [output]
 # Times: HH:MM:SS, MM:SS, or plain seconds
 
-forge trim-video demo.mp4 0:30 1:45
-forge trim-video demo.mp4 90 150 clip.mp4
+asset-forge trim-video demo.mp4 0:30 1:45
+asset-forge trim-video demo.mp4 90 150 clip.mp4
 ```
 
 ---
@@ -580,12 +687,12 @@ forge trim-video demo.mp4 90 150 clip.mp4
 Pulls frames out of a video as numbered PNG files.
 
 ```bash
-forge extract-frames <video> [output_dir] [mode]
+asset-forge extract-frames <video> [output_dir] [mode]
 # mode: 1 (1fps, default), 0.5 (1 every 2s), 24 (24fps), all (every frame)
 
-forge extract-frames demo.mp4
-forge extract-frames demo.mp4 ./frames all    # every frame
-forge extract-frames demo.mp4 ./frames 0.25  # 1 frame every 4 seconds
+asset-forge extract-frames demo.mp4
+asset-forge extract-frames demo.mp4 ./frames all    # every frame
+asset-forge extract-frames demo.mp4 ./frames 0.25  # 1 frame every 4 seconds
 ```
 
 ---
@@ -595,11 +702,11 @@ forge extract-frames demo.mp4 ./frames 0.25  # 1 frame every 4 seconds
 Shrinks a video for sharing. Two modes: target file size or quality-based.
 
 ```bash
-forge compress-video <input> [output] [target_mb]
+asset-forge compress-video <input> [output] [target_mb]
 
-forge compress-video video.mp4                    # quality mode (720p max, CRF 28)
-forge compress-video video.mp4 small.mp4 8        # target 8MB (WhatsApp limit)
-forge compress-video video.mp4 email.mp4 25       # target 25MB (email limit)
+asset-forge compress-video video.mp4                    # quality mode (720p max, CRF 28)
+asset-forge compress-video video.mp4 small.mp4 8        # target 8MB (WhatsApp limit)
+asset-forge compress-video video.mp4 email.mp4 25       # target 25MB (email limit)
 ```
 
 ---
@@ -609,10 +716,10 @@ forge compress-video video.mp4 email.mp4 25       # target 25MB (email limit)
 Generates a complete PWA icon set including maskable variants with the correct safe zone, plus a `manifest.json` snippet.
 
 ```bash
-forge pwa-icons <logo> [output_dir] [bg_color]
+asset-forge pwa-icons <logo> [output_dir] [bg_color]
 
-forge pwa-icons logo.png
-forge pwa-icons logo.png ./pwa "#1a1a2e"   # dark background for maskable icons
+asset-forge pwa-icons logo.png
+asset-forge pwa-icons logo.png ./pwa "#1a1a2e"   # dark background for maskable icons
 ```
 
 Merge the generated `manifest.json` icons array into your site's `manifest.json`.
@@ -624,14 +731,14 @@ Merge the generated `manifest.json` icons array into your site's `manifest.json`
 Resizes images using ImageMagick spec syntax.
 
 ```bash
-forge resize <file_or_dir> <spec> [output_dir]
+asset-forge resize <file_or_dir> <spec> [output_dir]
 
-forge resize hero.jpg 1200          # 1200px wide, height auto
-forge resize hero.jpg 1200x630      # fit within box, preserve ratio
-forge resize hero.jpg 1200x630!     # force exact size (may distort)
-forge resize hero.jpg 1200x630^     # fill and crop to 1200x630
-forge resize hero.jpg 50%           # scale to 50%
-forge resize ./photos 800 ./thumbs  # batch
+asset-forge resize hero.jpg 1200          # 1200px wide, height auto
+asset-forge resize hero.jpg 1200x630      # fit within box, preserve ratio
+asset-forge resize hero.jpg 1200x630!     # force exact size (may distort)
+asset-forge resize hero.jpg 1200x630^     # fill and crop to 1200x630
+asset-forge resize hero.jpg 50%           # scale to 50%
+asset-forge resize ./photos 800 ./thumbs  # batch
 ```
 
 ---
@@ -641,13 +748,13 @@ forge resize ./photos 800 ./thumbs  # batch
 Renames images in a directory. Supports prefix, suffix, slugify, and sequential numbering.
 
 ```bash
-forge rename <dir> [options]
+asset-forge rename <dir> [options]
 
-forge rename ./photos --slugify                    # "My Photo 1.jpg" → "my-photo-1.jpg"
-forge rename ./exports --prefix "app-" --slugify   # → "app-icon-dark.png"
-forge rename ./shots --sequence                    # → "0001.jpg", "0002.jpg" ...
-forge rename ./shots --sequence 10                 # start from 0010
-forge rename ./shots --prefix "hero-" --dry-run   # preview without renaming
+asset-forge rename ./photos --slugify                    # "My Photo 1.jpg" → "my-photo-1.jpg"
+asset-forge rename ./exports --prefix "app-" --slugify   # → "app-icon-dark.png"
+asset-forge rename ./shots --sequence                    # → "0001.jpg", "0002.jpg" ...
+asset-forge rename ./shots --sequence 10                 # start from 0010
+asset-forge rename ./shots --prefix "hero-" --dry-run   # preview without renaming
 ```
 
 ---
@@ -657,13 +764,13 @@ forge rename ./shots --prefix "hero-" --dry-run   # preview without renaming
 Detects visually similar images using perceptual hashing (dHash). Finds near-dupes even if resized or slightly edited.
 
 ```bash
-forge duplicates <dir> [threshold]
+asset-forge duplicates <dir> [threshold]
 # threshold: 0-64 hamming distance, default 6 (0 = exact pixel-identical)
 # Requires: pip install Pillow
 
-forge duplicates ./photos
-forge duplicates ./photos 0    # exact duplicates only
-forge duplicates ./photos 12   # more lenient (catches crops/resizes)
+asset-forge duplicates ./photos
+asset-forge duplicates ./photos 0    # exact duplicates only
+asset-forge duplicates ./photos 12   # more lenient (catches crops/resizes)
 ```
 
 ---
@@ -673,9 +780,13 @@ forge duplicates ./photos 12   # more lenient (catches crops/resizes)
 Converts a single image to any format. Uses native encoders (`avifenc`, `cwebp`) when available.
 
 ```bash
-forge convert <input> <output.ext> [quality]
+asset-forge convert <input> <output.ext> [quality]
 
-forge convert logo.png logo.webp
-forge convert photo.jpg photo.avif 85
-forge convert image.webp image.png
+asset-forge convert logo.png logo.webp
+asset-forge convert photo.jpg photo.avif 85
+asset-forge convert image.webp image.png
 ```
+
+## License
+
+MIT
