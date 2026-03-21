@@ -48,10 +48,17 @@ jobs:
       contents: write
 
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
+
+      - name: Package scripts
+        run: |
+          tar -czf dist/scripts.tar.gz -C scripts .
+          sha256sum dist/scripts.tar.gz | awk '{print $1}' > dist/scripts.tar.gz.sha256
 
       - name: Compute SHA256
         run: |
@@ -69,6 +76,8 @@ jobs:
             dist/asset-forge-darwin-x64.sha256
             dist/asset-forge-linux-x64
             dist/asset-forge-linux-x64.sha256
+            dist/scripts.tar.gz
+            dist/scripts.tar.gz.sha256
           generate_release_notes: true
 
   update-formula:
@@ -94,6 +103,8 @@ jobs:
           sha256sum dist/asset-forge-darwin-arm64 | awk '{print $1}' > dist/asset-forge-darwin-arm64.sha256
           sha256sum dist/asset-forge-darwin-x64   | awk '{print $1}' > dist/asset-forge-darwin-x64.sha256
           sha256sum dist/asset-forge-linux-x64    | awk '{print $1}' > dist/asset-forge-linux-x64.sha256
+          tar -czf dist/scripts.tar.gz -C scripts .
+          sha256sum dist/scripts.tar.gz | awk '{print $1}' > dist/scripts.tar.gz.sha256
 
       - name: Write formula
         env:
@@ -104,6 +115,7 @@ jobs:
           ARM64_SHA=$(cat dist/asset-forge-darwin-arm64.sha256)
           X64_SHA=$(cat dist/asset-forge-darwin-x64.sha256)
           LINUX_SHA=$(cat dist/asset-forge-linux-x64.sha256)
+          SCRIPTS_SHA=$(cat dist/scripts.tar.gz.sha256)
 
           cat > tap/asset-forge.rb <<FORMULA
           class AssetForge < Formula
@@ -132,10 +144,19 @@ jobs:
               end
             end
 
+            resource "scripts" do
+              url "https://github.com/${OWNER}/asset-forge/releases/download/v${VERSION}/scripts.tar.gz"
+              sha256 "${SCRIPTS_SHA}"
+            end
+
             def install
-              os = OS.mac? ? "darwin" : "linux"
+              os   = OS.mac? ? "darwin" : "linux"
               arch = Hardware::CPU.arm? ? "arm64" : "x64"
               bin.install "asset-forge-\#{os}-\#{arch}" => "asset-forge"
+
+              scripts_dir = libexec/"asset-forge/scripts"
+              scripts_dir.mkpath
+              resource("scripts").stage { scripts_dir.install Dir["*"] }
             end
 
             test do

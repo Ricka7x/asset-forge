@@ -24,7 +24,6 @@ afterAll(() => rmSync(OUT_DIR, { recursive: true, force: true }))
 describe('integration', () => {
   describe('resize', () => {
     test('resizes to specified width', () => {
-      const out = join(OUT_DIR, 'resized.png')
       run('resize', LOGO, '256', OUT_DIR)
       const file = join(OUT_DIR, 'logo.png')
       expect(existsSync(file)).toBe(true)
@@ -43,11 +42,14 @@ describe('integration', () => {
       expect(size.height).toBe(630)
     })
 
-    test('accepts headline and subtitle flags', () => {
-      const out = join(OUT_DIR, 'og-text.png')
-      const result = run('og-image', '-b', PHOTO, '-t', 'Hello', '-s', 'World', '-o', out)
+    test('accepts gravity flag', () => {
+      const out = join(OUT_DIR, 'og-north.png')
+      const result = run('og-image', '-b', PHOTO, '-g', 'North', '-o', out)
       expect(result.exitCode).toBe(0)
       expect(existsSync(out)).toBe(true)
+      const size = imageSize(out)
+      expect(size.width).toBe(1200)
+      expect(size.height).toBe(630)
     })
   })
 
@@ -74,7 +76,7 @@ describe('integration', () => {
       const result = run('appiconset', LOGO, out)
       expect(result.exitCode).toBe(0)
       expect(existsSync(join(out, 'Contents.json'))).toBe(true)
-      expect(existsSync(join(out, 'icon-512.png'))).toBe(true)
+      expect(existsSync(join(out, 'icon_512x512.png'))).toBe(true)
     })
   })
 

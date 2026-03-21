@@ -1,7 +1,21 @@
 import { defineCommand, type ArgsDef } from 'citty'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { existsSync } from 'fs'
 
-const SCRIPTS_DIR = join(import.meta.dir, '../scripts')
+function findScriptsDir(): string {
+  // 1. Running from source: bun run src/cli.ts
+  const fromSrc = join(import.meta.dir, '../scripts')
+  if (existsSync(fromSrc)) return fromSrc
+
+  // 2. Installed via Homebrew: binary at bin/, scripts at libexec/asset-forge/scripts/
+  const fromBrew = join(dirname(process.execPath), '..', 'libexec', 'asset-forge', 'scripts')
+  if (existsSync(fromBrew)) return fromBrew
+
+  // 3. Compiled binary run from the repo root (CI, local dist testing)
+  return join(process.cwd(), 'scripts')
+}
+
+const SCRIPTS_DIR = findScriptsDir()
 
 function sh(name: string, script: string, description: string, args: ArgsDef = {}) {
   return defineCommand({
@@ -56,7 +70,7 @@ export const blurHash = sh('blur-hash', 'blur-hash', 'Compute BlurHash string fo
 export const palette = sh('palette', 'palette', 'Extract dominant color palette', {
   image:  { type: 'positional', description: 'Source image',           required: true },
   colors: { type: 'positional', description: 'Number of colors',       default: '6' },
-  swatch: { type: 'positional', description: 'Save swatch PNG to this path' },
+  swatch: { type: 'positional', description: 'Save swatch PNG to this path', default: '' },
 })
 
 export const watermark = sh('watermark', 'watermark', 'Overlay a watermark on images', {
