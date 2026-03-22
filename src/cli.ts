@@ -39,10 +39,7 @@ const main = defineCommand({
     // ── Icons & Web ────────────────────────────────────────
     'og-image':        commands.ogImage,
     'favicon':         commands.favicon,
-    'ico':             commands.ico,
-    'appiconset':      commands.appiconset,
-    'ios-icons':       commands.iosIcons,
-    'android-icons':   commands.androidIcons,
+    'app-icons':       commands.appIcons,
     'pwa-icons':       commands.pwaIcons,
     'sprites':         commands.sprites,
     // ── Marketing & Store ──────────────────────────────────

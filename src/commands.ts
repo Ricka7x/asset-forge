@@ -47,9 +47,9 @@ function sh(name: string, script: string, description: string, args: ArgsDef = {
 // ─── Image ────────────────────────────────────────────────────────────────────
 
 export const optimize = sh('optimize', 'optimize-images', 'Compress images to AVIF/WebP', {
-  src:     { type: 'positional', description: 'Source directory',      required: true },
-  dest:    { type: 'positional', description: 'Destination directory', required: true },
-  quality: { type: 'positional', description: 'Quality 1-100',         default: '95' },
+  src:     { type: 'positional', description: 'Source file or directory',      required: true },
+  dest:    { type: 'positional', description: 'Destination file or directory', required: true },
+  quality: { type: 'positional', description: 'Quality 1-100',                 default: '95' },
 })
 
 export const resize = sh('resize', 'resize', 'Resize images', {
@@ -59,9 +59,9 @@ export const resize = sh('resize', 'resize', 'Resize images', {
 })
 
 export const thumbnail = sh('thumbnail', 'make-thumbnail', 'Generate center-cropped thumbnails', {
-  src:     { type: 'positional', description: 'Source directory',      required: true },
-  dest:    { type: 'positional', description: 'Destination directory', required: true },
-  size:    { type: 'positional', description: 'Dimensions WxH',        default: '400x400' },
+  src:     { type: 'positional', description: 'Source file or directory',      required: true },
+  dest:    { type: 'positional', description: 'Destination file or directory', required: true },
+  size:    { type: 'positional', description: 'Dimensions WxH',                default: '400x400' },
   gravity: { type: 'positional', description: 'Crop anchor: NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast', default: 'Center' },
 })
 
@@ -87,8 +87,8 @@ export const palette = sh('palette', 'palette', 'Extract dominant color palette'
 })
 
 export const watermark = sh('watermark', 'watermark', 'Overlay a watermark on images', {
-  src:      { type: 'positional', description: 'Source directory',      required: true },
-  dest:     { type: 'positional', description: 'Destination directory', required: true },
+  src:      { type: 'positional', description: 'Source file or directory',      required: true },
+  dest:     { type: 'positional', description: 'Destination file or directory', required: true },
   logo:     { type: 'string',     description: 'Logo image',            alias: 'l' },
   text:     { type: 'string',     description: 'Text watermark',        alias: 't' },
   position: { type: 'string',     description: 'SouthEast, NorthEast, SouthWest, NorthWest, Center', alias: 'p', default: 'SouthEast' },
@@ -153,8 +153,8 @@ export const stripMeta = sh('strip-meta', 'strip-metadata', 'Remove EXIF metadat
   input: { type: 'positional', description: 'File or directory', required: true },
 })
 
-export const audit = sh('audit', 'audit-images', 'Audit a folder for image issues', {
-  dir:       { type: 'positional', description: 'Directory to audit',           required: true },
+export const audit = sh('audit', 'audit-images', 'Audit an image or folder for issues', {
+  dir:       { type: 'positional', description: 'File or directory to audit',   required: true },
   threshold: { type: 'positional', description: 'Size warning threshold in KB', default: '200' },
 })
 
@@ -201,29 +201,16 @@ export const ogImage = sh('og-image', 'make-og-image', 'Generate Open Graph imag
   color:      { type: 'string', description: 'Text color',                      alias: 'f', default: 'white' },
 })
 
-export const favicon = sh('favicon', 'make-favicon', 'Generate favicon set + site.webmanifest', {
-  logo:   { type: 'positional', description: 'Source logo image', required: true },
-  output: { type: 'positional', description: 'Output directory' },
+export const favicon = sh('favicon', 'make-favicon', 'Generate favicon set + site.webmanifest (--ico-only for just the .ico)', {
+  logo:    { type: 'positional', description: 'Source logo image', required: true },
+  output:  { type: 'positional', description: 'Output directory (or .ico file path with --ico-only)' },
+  icoOnly: { type: 'boolean',    description: 'Generate only a .ico file (16–256px)', alias: 'ico-only' },
 })
 
-export const ico = sh('ico', 'make-ico', 'Generate .ico file', {
-  logo:   { type: 'positional', description: 'Source logo image', required: true },
-  output: { type: 'positional', description: 'Output .ico file',  default: 'favicon.ico' },
-})
-
-export const appiconset = sh('appiconset', 'make-appiconset', 'Generate macOS AppIcon.appiconset', {
-  logo:   { type: 'positional', description: 'Source logo image', required: true },
-  output: { type: 'positional', description: 'Output directory',  default: 'AppIcon.appiconset' },
-})
-
-export const iosIcons = sh('ios-icons', 'make-appiconset-ios', 'Generate iOS app icon set', {
-  logo:   { type: 'positional', description: 'Source logo image', required: true },
-  output: { type: 'positional', description: 'Output directory',  default: 'AppIcon.appiconset' },
-})
-
-export const androidIcons = sh('android-icons', 'make-appiconset-android', 'Generate Android mipmap icons', {
-  logo:   { type: 'positional', description: 'Source logo image', required: true },
-  output: { type: 'positional', description: 'Output directory',  default: 'app/src/main/res' },
+export const appIcons = sh('app-icons', 'make-app-icons', 'Generate app icon set for macOS, iOS, or Android', {
+  logo:     { type: 'positional', description: 'Source logo image',                            required: true },
+  output:   { type: 'positional', description: 'Output directory' },
+  platform: { type: 'string',     description: 'Target platform: macos (default), ios, android', default: 'macos' },
 })
 
 export const pwaIcons = sh('pwa-icons', 'pwa-icons', 'Generate PWA icons + manifest snippet', {

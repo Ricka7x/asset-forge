@@ -1,10 +1,13 @@
 #!/bin/bash
-# Usage: ./make-favicon.sh <input_logo> [output_dir]
+# Usage: ./make-favicon.sh <input_logo> [output_dir] [--ico-only]
 # Generates a complete favicon set for web projects.
+# --ico-only: generate only a .ico file (16, 32, 48, 64, 128, 256px)
 # Requires: ImageMagick
 
-INPUT="${1:?'Usage: ./make-favicon.sh <logo.png> [output_dir]'}"
+INPUT="${1:?'Usage: ./make-favicon.sh <logo.png> [output_dir] [--ico-only]'}"
 OUT_DIR="${2:-.}"
+ICO_ONLY=0
+for arg in "$@"; do [ "$arg" = "--ico-only" ] && ICO_ONLY=1; done
 
 if command -v magick >/dev/null; then
   IM="magick"
@@ -13,6 +16,28 @@ elif command -v convert >/dev/null; then
 else
   echo "Error: ImageMagick not found. Install with: brew install imagemagick"
   exit 1
+fi
+
+if [ "$ICO_ONLY" -eq 1 ]; then
+  # Determine output path: if OUT_DIR ends in .ico treat as file, else put favicon.ico inside it
+  if [[ "$OUT_DIR" == *.ico ]]; then
+    ICO_OUT="$OUT_DIR"
+  else
+    mkdir -p "$OUT_DIR"
+    ICO_OUT="$OUT_DIR/favicon.ico"
+  fi
+  echo "Generating $ICO_OUT..."
+  $IM "$INPUT" \
+    \( -clone 0 -resize 256x256 \) \
+    \( -clone 0 -resize 128x128 \) \
+    \( -clone 0 -resize 64x64  \) \
+    \( -clone 0 -resize 48x48  \) \
+    \( -clone 0 -resize 32x32  \) \
+    \( -clone 0 -resize 16x16  \) \
+    -delete 0 \
+    "$ICO_OUT"
+  echo "Done → $ICO_OUT (16, 32, 48, 64, 128, 256px embedded)"
+  exit 0
 fi
 
 mkdir -p "$OUT_DIR"

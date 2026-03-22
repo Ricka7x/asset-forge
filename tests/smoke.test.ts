@@ -11,8 +11,8 @@ const COMMANDS = [
   'optimize', 'resize', 'thumbnail', 'srcset', 'placeholder', 'blur-hash',
   'palette', 'watermark', 'shadow', 'border', 'round-corners', 'add-text',
   'trim', 'montage', 'compare', 'strip-meta', 'audit', 'info', 'device-frame',
-  'duplicates', 'rename', 'convert', 'og-image', 'favicon', 'ico', 'appiconset',
-  'ios-icons', 'android-icons', 'pwa-icons', 'sprites', 'promo', 'feature-graphic',
+  'duplicates', 'rename', 'convert', 'og-image', 'favicon', 'app-icons',
+  'pwa-icons', 'sprites', 'promo', 'feature-graphic',
   'github-social', 'email-banner', 'gif-to-video', 'video-to-gif', 'convert-video',
   'compress-video', 'trim-video', 'extract-frames',
 ]

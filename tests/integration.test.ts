@@ -70,13 +70,29 @@ describe('integration', () => {
     })
   })
 
-  describe('appiconset', () => {
-    test('generates Contents.json and icon sizes', () => {
+  describe('app-icons', () => {
+    test('macos generates Contents.json and icon sizes', () => {
       const out = join(OUT_DIR, 'AppIcon.appiconset')
-      const result = run('appiconset', LOGO, out)
+      const result = run('app-icons', LOGO, out)
       expect(result.exitCode).toBe(0)
       expect(existsSync(join(out, 'Contents.json'))).toBe(true)
       expect(existsSync(join(out, 'icon_512x512.png'))).toBe(true)
+    })
+
+    test('ios generates Contents.json and icon sizes', () => {
+      const out = join(OUT_DIR, 'AppIcon-ios.appiconset')
+      const result = run('app-icons', LOGO, out, '--platform', 'ios')
+      expect(result.exitCode).toBe(0)
+      expect(existsSync(join(out, 'Contents.json'))).toBe(true)
+      expect(existsSync(join(out, 'icon-1024.png'))).toBe(true)
+    })
+
+    test('android generates mipmap folders', () => {
+      const out = join(OUT_DIR, 'android-res')
+      const result = run('app-icons', LOGO, out, '--platform', 'android')
+      expect(result.exitCode).toBe(0)
+      expect(existsSync(join(out, 'mipmap-xxxhdpi', 'ic_launcher.png'))).toBe(true)
+      expect(existsSync(join(out, 'ic_launcher-playstore.png'))).toBe(true)
     })
   })
 

@@ -182,10 +182,10 @@ bun run build:all  # cross-compile for macOS arm64/x64 and Linux x64
 
 ### `optimize` — Compress images
 
-Compresses raster images to the best available modern format (AVIF → WebP → original). One output per input file.
+Compresses raster images to the best available modern format (AVIF → WebP → original). Accepts a single file or a directory.
 
 ```bash
-asset-forge optimize <src_dir> <dest_dir> [quality]
+asset-forge optimize <src> <dest> [quality]
 ```
 
 | Arg | Default | Description |
@@ -195,6 +195,7 @@ asset-forge optimize <src_dir> <dest_dir> [quality]
 ```bash
 asset-forge optimize ./images ./public/img
 asset-forge optimize ./images ./public/img 80
+asset-forge optimize hero.jpg ./public/img/hero.avif
 QUALITY=75 asset-forge optimize ./images ./dist/img
 ```
 
@@ -202,16 +203,18 @@ QUALITY=75 asset-forge optimize ./images ./dist/img
 
 ### `favicon` — Web favicon set
 
-Generates a complete favicon set and `site.webmanifest` for web projects.
+Generates a complete favicon set and `site.webmanifest` for web projects. Use `--ico-only` to generate just a `.ico` file.
 
 ```bash
-asset-forge favicon <logo> [output_dir]
+asset-forge favicon <logo> [output_dir] [--ico-only]
 ```
 
-Outputs: `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest`
+Outputs (default): `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest`
 
 ```bash
 asset-forge favicon logo.png ./public
+asset-forge favicon logo.png ./public --ico-only          # just favicon.ico (16–256px)
+asset-forge favicon logo.png ./public/icon.ico --ico-only # custom output path
 ```
 
 Add to your `<head>`:
@@ -257,52 +260,25 @@ asset-forge og-image -b hero.jpg -l logo.png -t "App Name" -s "Tagline" -o og.pn
 
 ---
 
-### `appiconset` — macOS Xcode app icons
+### `app-icons` — App icon sets
 
-Generates `AppIcon.appiconset` for macOS Xcode projects. Applies the macOS squircle shape with 10% padding on each side.
+Generates app icon sets for macOS, iOS, or Android from a single logo. Use `--platform` to select the target.
 
 ```bash
-asset-forge appiconset <logo> [output_dir]
+asset-forge app-icons <logo> [output_dir] [--platform macos|ios|android]
 ```
 
-Outputs all required sizes (16px–1024px) + `Contents.json`. Drop the folder directly into your `.xcassets`.
+| Platform | Default output | What's generated |
+|---|---|---|
+| `macos` (default) | `AppIcon.appiconset` | 16–1024px with squircle mask + `Contents.json` |
+| `ios` | `AppIcon.appiconset` | All iPhone/iPad sizes 20–1024px + `Contents.json` |
+| `android` | `res` | `mipmap-*/ic_launcher.png` + round variants + Play Store 512px |
 
 ```bash
-asset-forge appiconset logo.png
-asset-forge appiconset logo.png MyApp.appiconset
-```
-
----
-
-### `ios-icons` — iOS Xcode app icons
-
-Generates `AppIcon.appiconset` for iOS Xcode projects. No squircle applied — iOS clips automatically.
-
-```bash
-asset-forge ios-icons <logo> [output_dir]
-```
-
-Covers all iOS/iPadOS sizes (20px–1024px) + `Contents.json`.
-
-```bash
-asset-forge ios-icons logo.png
-```
-
----
-
-### `android-icons` — Android mipmap icons
-
-Generates the full `res/mipmap-*` folder structure for Android projects, including round variants and a Play Store icon.
-
-```bash
-asset-forge android-icons <logo> [output_dir]
-```
-
-Outputs `ic_launcher.png` + `ic_launcher_round.png` at all densities (mdpi → xxxhdpi) and a `ic_launcher-playstore.png` (512×512).
-
-```bash
-asset-forge android-icons logo.png
-asset-forge android-icons logo.png app/src/main/res
+asset-forge app-icons logo.png
+asset-forge app-icons logo.png MyApp.appiconset --platform macos
+asset-forge app-icons logo.png --platform ios
+asset-forge app-icons logo.png app/src/main/res --platform android
 ```
 
 ---
@@ -369,12 +345,12 @@ asset-forge strip-meta ./uploads
 
 ---
 
-### `thumbnail` — Batch thumbnails
+### `thumbnail` — Thumbnails
 
-Batch generates center-cropped thumbnails from a directory, preserving folder structure.
+Generates center-cropped thumbnails from a single file or a directory (preserving folder structure).
 
 ```bash
-asset-forge thumbnail <src_dir> <dest_dir> [size] [gravity]
+asset-forge thumbnail <src> <dest> [size] [gravity]
 ```
 
 | Arg | Default | Description |
@@ -384,7 +360,7 @@ asset-forge thumbnail <src_dir> <dest_dir> [size] [gravity]
 
 ```bash
 asset-forge thumbnail ./photos ./thumbs
-asset-forge thumbnail ./photos ./thumbs 800x600
+asset-forge thumbnail hero.jpg ./thumbs/hero-thumb.jpg 800x600
 asset-forge thumbnail ./photos ./thumbs 400x400 North
 ```
 
@@ -428,23 +404,24 @@ Outputs:
 
 ---
 
-### `audit` — Audit image directory
+### `audit` — Audit images
 
-Scans a directory and reports potential issues.
+Scans a single image or a directory and reports potential issues.
 
 ```bash
-asset-forge audit <dir> [size_threshold_kb]
+asset-forge audit <file_or_dir> [size_threshold_kb]
 ```
 
 Checks for:
 - Files over the size threshold (default: 200KB)
 - PNG/JPG files that could be converted to WebP/AVIF
 - Animated GIFs that should be video or WebP
-- Missing `@2x` retina variants
+- Missing `@2x` retina variants (directory mode only)
 - Suspiciously small images (<10px)
 
 ```bash
 asset-forge audit ./public/images
+asset-forge audit hero.jpg
 asset-forge audit ./public/images 100
 ```
 
@@ -546,16 +523,17 @@ asset-forge feature-graphic -b bg.jpg -l logo.png -t "App Name" -s "Tagline"
 
 ---
 
-### `watermark` — Bulk watermark
+### `watermark` — Watermark
 
-Adds a logo or text watermark to all images in a directory.
+Adds a logo or text watermark to a single image or all images in a directory.
 
 ```bash
-asset-forge watermark <src_dir> <dest_dir> [-l logo] [-t text] [-p position] [-o opacity]
+asset-forge watermark <src> <dest> [-l logo] [-t text] [-p position] [-o opacity]
 # position: SouthEast (default), NorthEast, SouthWest, NorthWest, Center
 # opacity: 0-100, default 70
 
 asset-forge watermark ./photos ./watermarked -l logo.png
+asset-forge watermark photo.jpg watermarked.jpg -l logo.png
 asset-forge watermark ./photos ./watermarked -t "© 2025 MyApp" -p SouthWest -o 50
 ```
 
