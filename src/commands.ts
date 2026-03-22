@@ -30,8 +30,9 @@ function sh(name: string, script: string, description: string, args: ArgsDef = {
       // can find them after we change the working directory.
       const raw = process.argv.slice(3).map(arg => {
         if (arg.startsWith('-')) return arg
-        const abs = isAbsolute(arg) ? arg : resolve(process.cwd(), arg)
-        return existsSync(abs) ? abs : arg
+        // Only resolve args that look like file paths (contain / or start with .)
+        if (!arg.includes('/') && !arg.startsWith('.')) return arg
+        return isAbsolute(arg) ? arg : resolve(process.cwd(), arg)
       })
 
       const proc = Bun.spawnSync(['bash', join(SCRIPTS_DIR, `${script}.sh`), ...raw], {
@@ -296,7 +297,7 @@ export const convertVideo = sh('convert-video', 'convert-video', 'Transcode vide
 export const compressVideo = sh('compress-video', 'compress-video', 'Reduce video file size', {
   input:    { type: 'positional', description: 'Source video',    required: true },
   output:   { type: 'positional', description: 'Output file' },
-  targetMb: { type: 'positional', description: 'Target file size in MB (omit for quality mode)' },
+  targetMb: { type: 'positional', description: 'Target file size in MB (omit for quality mode)', default: '' },
 })
 
 export const trimVideo = sh('trim-video', 'trim-video', 'Trim a video to a time range', {

@@ -15,7 +15,7 @@ if ! command -v ffmpeg >/dev/null; then
 fi
 
 EXT="${OUTPUT##*.}"
-EXT="${EXT,,}"  # lowercase
+EXT="$(echo "$EXT" | tr '[:upper:]' '[:lower:]')"
 
 echo "Converting $(basename "$INPUT") → $OUTPUT..."
 

@@ -56,7 +56,7 @@ iphone)
        -alpha off -compose CopyOpacity -composite \
     \) \
     -gravity NorthWest -geometry "+${PAD_X}+${PAD_TOP}" -composite \
-    \( -size "${DI_W}x${DI_H}" xc="#1C1C1E" \
+    \( -size "${DI_W}x${DI_H}" xc:"#1C1C1E" \
        -draw "roundrectangle 0,0,$((DI_W-1)),$((DI_H-1)),$((DI_H/2)),$((DI_H/2))" \
     \) \
     -gravity NorthWest -geometry "+${DI_X}+${DI_Y}" -composite \

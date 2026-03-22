@@ -18,7 +18,7 @@ else
 fi
 
 # Collect images (sorted for deterministic output)
-mapfile -t IMAGES < <(find "$SRC_DIR" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.svg' \) | sort)
+IFS=$'\n' read -r -d '' -a IMAGES < <(find "$SRC_DIR" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.svg' \) | sort && printf '\0')
 
 if [ ${#IMAGES[@]} -eq 0 ]; then
   echo "Error: No images found in $SRC_DIR"

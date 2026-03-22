@@ -21,8 +21,15 @@ add_border() {
 }
 
 if [ -f "$TARGET" ]; then
-  dest="${OUT_DIR:-$TARGET}"
-  [ -n "$OUT_DIR" ] && mkdir -p "$OUT_DIR" && dest="$OUT_DIR/${TARGET##*/}"
+  if [ -z "$OUT_DIR" ]; then
+    dest="$TARGET"
+  elif [ -d "$OUT_DIR" ] || [[ "$OUT_DIR" == */ ]]; then
+    mkdir -p "$OUT_DIR"
+    dest="$OUT_DIR/${TARGET##*/}"
+  else
+    mkdir -p "$(dirname "$OUT_DIR")"
+    dest="$OUT_DIR"
+  fi
   add_border "$TARGET" "$dest"
 elif [ -d "$TARGET" ]; then
   [ -n "$OUT_DIR" ] && mkdir -p "$OUT_DIR"

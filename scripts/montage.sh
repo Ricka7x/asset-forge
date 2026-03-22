@@ -16,7 +16,7 @@ if command -v magick >/dev/null; then IM="magick"
 elif command -v convert >/dev/null; then IM="convert"
 else echo "Error: ImageMagick not found. Install with: brew install imagemagick"; exit 1; fi
 
-mapfile -t IMAGES < <(find "$SRC_DIR" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) | sort)
+IFS=$'\n' read -r -d '' -a IMAGES < <(find "$SRC_DIR" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) | sort && printf '\0')
 
 if [ ${#IMAGES[@]} -eq 0 ]; then
   echo "Error: no images found in $SRC_DIR"

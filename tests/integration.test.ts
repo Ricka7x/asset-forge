@@ -9,7 +9,7 @@ const PHOTO   = './tests/fixtures/photo.png'  // 1200x630
 const OUT_DIR = './tests/out'
 
 function run(...args: string[]) {
-  return spawnSync([CLI, ...args], { stderr: 'pipe', stdout: 'pipe' })
+  return spawnSync([CLI, ...args], { stderr: 'pipe', stdout: 'pipe', env: { ...process.env, FORGE_OUT: OUT_DIR } })
 }
 
 function imageSize(file: string): { width: number; height: number } {
