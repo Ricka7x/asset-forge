@@ -85,6 +85,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+        with:
+          path: source
+
       - name: Checkout tap repo
         uses: actions/checkout@v4
         with:
@@ -103,7 +108,7 @@ jobs:
           sha256sum dist/asset-forge-darwin-arm64 | awk '{print $1}' > dist/asset-forge-darwin-arm64.sha256
           sha256sum dist/asset-forge-darwin-x64   | awk '{print $1}' > dist/asset-forge-darwin-x64.sha256
           sha256sum dist/asset-forge-linux-x64    | awk '{print $1}' > dist/asset-forge-linux-x64.sha256
-          tar -czf dist/scripts.tar.gz -C scripts .
+          tar -czf dist/scripts.tar.gz -C source/scripts .
           sha256sum dist/scripts.tar.gz | awk '{print $1}' > dist/scripts.tar.gz.sha256
 
       - name: Write formula
