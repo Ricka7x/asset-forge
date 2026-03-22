@@ -57,20 +57,37 @@ bun run dev -- og-image --help          # per-command help
 bun run dev -- og-image -b photo.jpg    # run a command
 ```
 
-### Build the binary
+This runs `src/cli.ts` directly via Bun — no build step needed. Use this while iterating on a new command.
+
+### Developing alongside the brew-installed version
+
+Since you have the brew version installed globally (`/opt/homebrew/bin/forge`), use `bun run dev` during development so you never accidentally run the brew binary instead of your local changes.
+
+When you want to test the actual compiled binary locally:
 
 ```bash
-bun run build
+bun run build              # compiles to dist/asset-forge
+./dist/asset-forge --help  # run it directly — does not affect the brew install
 ```
 
-This compiles `src/cli.ts` to `dist/asset-forge` and re-links it globally via `bun link`. After building, `asset-forge` in your shell points to the new binary.
-
-### Test the binary
+To temporarily swap the global `forge` command to your local build:
 
 ```bash
-asset-forge --help
-asset-forge og-image --help
-asset-forge favicon logo.png ./out
+bun link                   # makes forge → your local build
+# ... test your changes ...
+bun unlink                 # restores forge → brew version
+```
+
+### Run the test suite
+
+```bash
+bun test                   # runs smoke + integration tests against dist/asset-forge
+```
+
+Tests always use `dist/asset-forge`, so build first if you want tests to reflect your latest changes:
+
+```bash
+bun run build && bun test
 ```
 
 ---
@@ -79,17 +96,18 @@ asset-forge favicon logo.png ./out
 
 ### 1. Write the shell script
 
-Add a new `.sh` file to `scripts/`. Follow the existing pattern — print a `Usage:` line at the top, validate required args, and use ImageMagick or FFmpeg to do the work.
+Add a new `.sh` file to `scripts/`. Source `_lib.sh` at the top for font resolution helpers, validate required args with `${1:?}`, and use ImageMagick or FFmpeg for the work.
 
 ```bash
-# scripts/my-command.sh
 #!/bin/bash
+source "$(dirname "$0")/_lib.sh"
 # Usage: ./my-command.sh <input> [output]
 
 INPUT="${1:?'Usage: ./my-command.sh <input> [output]'}"
 OUTPUT="${2:-output.png}"
 
-# ... your ImageMagick / FFmpeg logic
+magick "$INPUT" ... "$OUTPUT"
+echo "Done → $OUTPUT"
 ```
 
 Make it executable:
@@ -98,16 +116,27 @@ Make it executable:
 chmod +x scripts/my-command.sh
 ```
 
+**Bash 3 compatibility (macOS default shell):** avoid these bash 4+ features:
+
+| Avoid | Use instead |
+| ----- | ----------- |
+| `mapfile -t arr < <(...)` | `IFS=$'\n' read -r -d '' -a arr < <(... && printf '\0')` |
+| `${VAR,,}` (lowercase) | `$(echo "$VAR" \| tr '[:upper:]' '[:lower:]')` |
+| `declare -A` (associative arrays) | Use `case` statements or sequential if/elif |
+
 ### 2. Register it in `src/commands.ts`
 
-Add an export using the `sh()` helper. Define each arg so it shows up in `--help`:
+Add an export using the `sh()` helper. The second argument is the script filename (without `.sh`), the third is the description, and the fourth defines the args:
 
 ```typescript
-export const myCommand = sh('my-command', 'Short description of what it does', {
+export const myCommand = sh('my-command', 'my-command', 'Short description', {
   input:  { type: 'positional', description: 'Source file', required: true },
-  output: { type: 'positional', description: 'Output file', default: 'output.png' },
+  output: { type: 'positional', description: 'Output file', default: '' },
+  flag:   { type: 'string', description: 'Some option', default: 'value' },
 })
 ```
+
+> Optional positional args must have `default: ''` — otherwise citty treats them as required.
 
 ### 3. Add it to the subcommands list in `src/cli.ts`
 
@@ -118,12 +147,25 @@ subCommands: {
 }
 ```
 
-### 4. Build and test
+### 4. Add a smoke test entry
+
+In `tests/smoke.test.ts`, add the command name to the `COMMANDS` array:
+
+```typescript
+const COMMANDS = [
+  // ... existing
+  'my-command',
+]
+```
+
+This ensures `--help` exits 0 and shows the command name on every CI run.
+
+### 5. Iterate and test
 
 ```bash
-bun run build
-asset-forge my-command --help
-asset-forge my-command input.png
+bun run dev -- my-command --help          # test help text without building
+bun run dev -- my-command input.png       # test the command
+bun run build && bun test                 # full test suite
 ```
 
 ---
@@ -214,7 +256,7 @@ git tag v1.0.0
   ┌─────────────────────────────────────────────┐
   │  build (parallel matrix)                    │
   │  ├── macos-latest  → darwin-arm64 binary    │
-  │  ├── macos-13      → darwin-x64 binary      │
+  │  ├── ubuntu-latest → darwin-x64 binary      │
   │  └── ubuntu-latest → linux-x64 binary       │
   └──────────────────┬──────────────────────────┘
                      │
