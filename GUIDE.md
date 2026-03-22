@@ -195,7 +195,7 @@ asset-forge --help   # should show the new version
 Homebrew requires a separate repo named `homebrew-<tap-name>`. Users install via:
 
 ```bash
-brew tap YOUR_USERNAME/asset-forge         # adds the tap
+brew tap Ricka7x/asset-forge         # adds the tap
 brew install asset-forge                   # installs the formula
 ```
 

@@ -153,10 +153,19 @@ jobs:
               os   = OS.mac? ? "darwin" : "linux"
               arch = Hardware::CPU.arm? ? "arm64" : "x64"
               bin.install "asset-forge-\#{os}-\#{arch}" => "asset-forge"
+              bin.install_symlink "asset-forge" => "forge"
 
               scripts_dir = libexec/"asset-forge/scripts"
               scripts_dir.mkpath
               resource("scripts").stage { scripts_dir.install Dir["*"] }
+            end
+
+            def caveats
+              <<~EOS
+                Two commands require Python packages (not installed automatically):
+                  blur-hash:  pip install Pillow blurhash
+                  duplicates: pip install Pillow
+              EOS
             end
 
             test do

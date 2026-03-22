@@ -1,6 +1,6 @@
 class AssetForge < Formula
   desc "The complete asset toolkit for developers"
-  homepage "https://github.com/YOUR_USERNAME/asset-forge"
+  homepage "https://github.com/Ricka7x/asset-forge"
   version "0.1.0"
 
   depends_on "imagemagick"
@@ -8,24 +8,24 @@ class AssetForge < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/YOUR_USERNAME/asset-forge/releases/download/v#{version}/asset-forge-darwin-arm64"
+      url "https://github.com/Ricka7x/asset-forge/releases/download/v#{version}/asset-forge-darwin-arm64"
       sha256 "PLACEHOLDER_ARM64_SHA256"
     end
     on_intel do
-      url "https://github.com/YOUR_USERNAME/asset-forge/releases/download/v#{version}/asset-forge-darwin-x64"
+      url "https://github.com/Ricka7x/asset-forge/releases/download/v#{version}/asset-forge-darwin-x64"
       sha256 "PLACEHOLDER_X64_SHA256"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/YOUR_USERNAME/asset-forge/releases/download/v#{version}/asset-forge-linux-x64"
+      url "https://github.com/Ricka7x/asset-forge/releases/download/v#{version}/asset-forge-linux-x64"
       sha256 "PLACEHOLDER_LINUX_SHA256"
     end
   end
 
   resource "scripts" do
-    url "https://github.com/YOUR_USERNAME/asset-forge/releases/download/v#{version}/scripts.tar.gz"
+    url "https://github.com/Ricka7x/asset-forge/releases/download/v#{version}/scripts.tar.gz"
     sha256 "PLACEHOLDER_SCRIPTS_SHA256"
   end
 
@@ -38,6 +38,14 @@ class AssetForge < Formula
     scripts_dir = libexec/"asset-forge/scripts"
     scripts_dir.mkpath
     resource("scripts").stage { scripts_dir.install Dir["*"] }
+  end
+
+  def caveats
+    <<~EOS
+      Two commands require Python packages (not installed automatically):
+        blur-hash:  pip install Pillow blurhash
+        duplicates: pip install Pillow
+    EOS
   end
 
   test do

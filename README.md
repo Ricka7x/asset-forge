@@ -7,7 +7,7 @@ The complete asset toolkit for developers. Generate app icons, favicons, OG imag
 ### Homebrew (recommended)
 
 ```bash
-brew tap YOUR_USERNAME/asset-forge
+brew tap Ricka7x/asset-forge
 brew install asset-forge
 ```
 
@@ -16,7 +16,7 @@ brew install asset-forge
 Requires [Bun](https://bun.sh) and [ImageMagick](https://imagemagick.org).
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/asset-forge
+git clone https://github.com/Ricka7x/asset-forge
 cd asset-forge
 bun install
 bun run build
@@ -95,7 +95,7 @@ FORGE_FONT_BOLD=/path/to/MyFont-Bold.ttf forge promo -b bg.jpg -l logo.png -t "H
 Create a repo named `asset-forge` on GitHub and push:
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/asset-forge.git
+git remote add origin https://github.com/Ricka7x/asset-forge.git
 git push -u origin main
 ```
 
@@ -126,14 +126,14 @@ Once the release is created, open it on GitHub and download (or view) the `.sha2
 Or grab them from the terminal:
 
 ```bash
-curl -sL https://github.com/YOUR_USERNAME/asset-forge/releases/download/v0.1.0/asset-forge-darwin-arm64.sha256
+curl -sL https://github.com/Ricka7x/asset-forge/releases/download/v0.1.0/asset-forge-darwin-arm64.sha256
 ```
 
 ### 5. Update the formula
 
 Edit `Formula/asset-forge.rb` and replace:
 
-- `YOUR_USERNAME` → your actual GitHub username
+- `Ricka7x` → your actual GitHub username
 - All three `PLACEHOLDER_*_SHA256` values with the real hashes from the release
 
 ### 6. Push the formula to the tap repo
@@ -144,14 +144,14 @@ cd ../homebrew-asset-forge
 git init
 git add asset-forge.rb
 git commit -m "Add asset-forge formula v0.1.0"
-git remote add origin https://github.com/YOUR_USERNAME/homebrew-asset-forge.git
+git remote add origin https://github.com/Ricka7x/homebrew-asset-forge.git
 git push -u origin main
 ```
 
 ### 7. Test the tap
 
 ```bash
-brew tap YOUR_USERNAME/asset-forge
+brew tap Ricka7x/asset-forge
 brew install asset-forge
 asset-forge --help
 ```

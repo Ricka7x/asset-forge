@@ -181,7 +181,7 @@ export const rename = sh('rename', 'rename', 'Batch rename image files', {
   dryRun:   { type: 'boolean',    description: 'Preview changes without renaming', alias: 'n' },
 })
 
-export const convert = sh('convert', 'convert-video', 'Convert image to a different format', {
+export const convert = sh('convert', 'convert', 'Convert image to a different format', {
   input:   { type: 'positional', description: 'Source image',                  required: true },
   output:  { type: 'positional', description: 'Output file with target extension', required: true },
   quality: { type: 'positional', description: 'Quality 1-100',                 default: '90' },
