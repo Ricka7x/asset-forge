@@ -4,7 +4,7 @@
 # Requires: ffmpeg (brew install ffmpeg)
 
 INPUT="${1:?'Usage: ./gif-to-video.sh <input.gif> [output_dir]'}"
-OUT_DIR="${2:-.}"
+OUT_DIR="${2:-gif-to-video}"
 
 if ! command -v ffmpeg >/dev/null; then
   echo "Error: ffmpeg not found. Install with: brew install ffmpeg"

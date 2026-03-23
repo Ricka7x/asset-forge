@@ -5,9 +5,25 @@
 # Requires: ImageMagick
 
 INPUT="${1:?'Usage: ./make-favicon.sh <logo.png> [output_dir] [--ico-only]'}"
-OUT_DIR="${2:-.}"
+
+# Parse remaining args: first non-flag arg is the output path; --ico-only sets mode.
+# This avoids $2 picking up --ico-only as an output path when no dir is given.
 ICO_ONLY=0
-for arg in "$@"; do [ "$arg" = "--ico-only" ] && ICO_ONLY=1; done
+OUTPUT_ARG=""
+for arg in "${@:2}"; do
+  if [ "$arg" = "--ico-only" ]; then
+    ICO_ONLY=1
+  elif [[ "$arg" != -* ]] && [ -z "$OUTPUT_ARG" ]; then
+    OUTPUT_ARG="$arg"
+  fi
+done
+
+# Default output: a single .ico file for --ico-only, a folder for the full set
+if [ "$ICO_ONLY" -eq 1 ]; then
+  OUT_DIR="${OUTPUT_ARG:-favicon.ico}"
+else
+  OUT_DIR="${OUTPUT_ARG:-favicon}"
+fi
 
 if command -v magick >/dev/null; then
   IM="magick"

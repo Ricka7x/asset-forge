@@ -18,7 +18,7 @@ function findScriptsDir(): string {
 
 const SCRIPTS_DIR = findScriptsDir()
 
-function sh(name: string, script: string, description: string, args: ArgsDef = {}) {
+function sh(name: string, script: string, description: string, args: ArgsDef = {}, hintOutDir = false) {
   return defineCommand({
     meta: { name, description },
     args,
@@ -39,6 +39,11 @@ function sh(name: string, script: string, description: string, args: ArgsDef = {
         stdio: ['inherit', 'inherit', 'inherit'],
         cwd: outDir,
       })
+
+      if (hintOutDir && proc.exitCode === 0 && !getConfig().outDir && !process.env.FORGE_OUT) {
+        console.log('\nTip: set a default output directory so you never need to specify one:\n  forge config set outDir ~/Desktop/assets')
+      }
+
       process.exit(proc.exitCode ?? 0)
     },
   })
@@ -48,33 +53,33 @@ function sh(name: string, script: string, description: string, args: ArgsDef = {
 
 export const optimize = sh('optimize', 'optimize-images', 'Compress images to AVIF/WebP', {
   src:     { type: 'positional', description: 'Source file or directory',      required: true },
-  dest:    { type: 'positional', description: 'Destination file or directory', required: true },
+  dest:    { type: 'positional', description: 'Destination file or directory', required: false },
   quality: { type: 'positional', description: 'Quality 1-100',                 default: '95' },
-})
+}, true)
 
 export const resize = sh('resize', 'resize', 'Resize images', {
   input:  { type: 'positional', description: 'File or directory',                       required: true },
   spec:   { type: 'positional', description: 'Size spec: 800, 800x600, 50%, 800x600^', required: true },
-  output: { type: 'positional', description: 'Output directory' },
-})
+  output: { type: 'positional', description: 'Output directory', required: false },
+}, true)
 
 export const thumbnail = sh('thumbnail', 'make-thumbnail', 'Generate center-cropped thumbnails', {
   src:     { type: 'positional', description: 'Source file or directory',      required: true },
-  dest:    { type: 'positional', description: 'Destination file or directory', required: true },
+  dest:    { type: 'positional', description: 'Destination file or directory', required: false },
   size:    { type: 'positional', description: 'Dimensions WxH',                default: '400x400' },
   gravity: { type: 'positional', description: 'Crop anchor: NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast', default: 'Center' },
-})
+}, true)
 
 export const srcset = sh('srcset', 'srcset', 'Generate @1x/@2x/@3x retina variants', {
   image:  { type: 'positional', description: 'Source image',            required: true },
-  output: { type: 'positional', description: 'Output directory' },
+  output: { type: 'positional', description: 'Output directory', required: false },
   scales: { type: 'positional', description: 'Comma-separated scales',  default: '1,2,3' },
-})
+}, true)
 
 export const placeholder = sh('placeholder', 'make-placeholder', 'Generate LQIP base64 placeholder', {
   image:  { type: 'positional', description: 'Source image', required: true },
-  output: { type: 'positional', description: 'Output PNG path (optional, also prints data URI)' },
-})
+  output: { type: 'positional', description: 'Output PNG path (optional, also prints data URI)', required: false },
+}, true)
 
 export const blurHash = sh('blur-hash', 'blur-hash', 'Compute BlurHash string for an image', {
   image: { type: 'positional', description: 'Source image', required: true },
@@ -88,51 +93,51 @@ export const palette = sh('palette', 'palette', 'Extract dominant color palette'
 
 export const watermark = sh('watermark', 'watermark', 'Overlay a watermark on images', {
   src:      { type: 'positional', description: 'Source file or directory',      required: true },
-  dest:     { type: 'positional', description: 'Destination file or directory', required: true },
+  dest:     { type: 'positional', description: 'Destination file or directory', required: false },
   logo:     { type: 'string',     description: 'Logo image',            alias: 'l' },
   text:     { type: 'string',     description: 'Text watermark',        alias: 't' },
   position: { type: 'string',     description: 'SouthEast, NorthEast, SouthWest, NorthWest, Center', alias: 'p', default: 'SouthEast' },
   opacity:  { type: 'string',     description: 'Opacity 0-100',         alias: 'o', default: '70' },
-})
+}, true)
 
 export const shadow = sh('shadow', 'shadow', 'Add drop shadow to an image', {
   input:   { type: 'positional', description: 'Source image',  required: true },
-  output:  { type: 'positional', description: 'Output PNG' },
+  output:  { type: 'positional', description: 'Output PNG', required: false },
   blur:    { type: 'positional', description: 'Blur radius',   default: '20' },
   opacity: { type: 'positional', description: 'Opacity 0-100', default: '80' },
   offsetX: { type: 'positional', description: 'X offset',      default: '10' },
   offsetY: { type: 'positional', description: 'Y offset',      default: '10' },
   color:   { type: 'positional', description: 'Shadow color',  default: 'black' },
-})
+}, true)
 
 export const border = sh('border', 'border', 'Add a border to images', {
   input:  { type: 'positional', description: 'File or directory', required: true },
-  output: { type: 'positional', description: 'Output directory' },
+  output: { type: 'positional', description: 'Output directory', required: false },
   size:   { type: 'positional', description: 'Border size in px', default: '4' },
   color:  { type: 'positional', description: 'Border color',      default: 'black' },
-})
+}, true)
 
 export const roundCorners = sh('round-corners', 'round-corners', 'Apply rounded corners to an image', {
   input:  { type: 'positional', description: 'Source image',         required: true },
-  output: { type: 'positional', description: 'Output PNG' },
+  output: { type: 'positional', description: 'Output PNG', required: false },
   radius: { type: 'positional', description: 'Radius in px or %',   default: '10%' },
-})
+}, true)
 
 export const addText = sh('add-text', 'add-text', 'Overlay text onto an image', {
   input:   { type: 'positional', description: 'Source image',                    required: true },
   text:    { type: 'positional', description: 'Text to overlay',                 required: true },
-  output:  { type: 'positional', description: 'Output file' },
+  output:  { type: 'positional', description: 'Output file', required: false },
   gravity: { type: 'positional', description: 'NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast', default: 'South' },
   size:    { type: 'positional', description: 'Font size in px',                 default: '48' },
   color:   { type: 'positional', description: 'Text color',                      default: 'white' },
   font:    { type: 'positional', description: 'Font name', default: '' },
-})
+}, true)
 
 export const trim = sh('trim', 'trim', 'Auto-trim transparent/uniform borders', {
   input:  { type: 'positional', description: 'File or directory',     required: true },
-  output: { type: 'positional', description: 'Output directory or file' },
+  output: { type: 'positional', description: 'Output directory or file', required: false },
   fuzz:   { type: 'positional', description: 'Color tolerance 0-100%', default: '5' },
-})
+}, true)
 
 export const montage = sh('montage', 'montage', 'Arrange images into a grid collage', {
   dir:      { type: 'positional', description: 'Images directory',  required: true },
@@ -164,9 +169,9 @@ export const info = sh('info', 'info', 'Show metadata and dimensions', {
 
 export const deviceFrame = sh('device-frame', 'device-frame', 'Wrap a screenshot in a device frame', {
   input:  { type: 'positional', description: 'Screenshot image',              required: true },
-  output: { type: 'positional', description: 'Output PNG' },
+  output: { type: 'positional', description: 'Output PNG', required: false },
   device: { type: 'positional', description: 'iphone, android, or browser',  default: 'iphone' },
-})
+}, true)
 
 export const duplicates = sh('duplicates', 'duplicates', 'Find visually duplicate images', {
   dir:       { type: 'positional', description: 'Directory to scan',                     required: true },
@@ -203,21 +208,21 @@ export const ogImage = sh('og-image', 'make-og-image', 'Generate Open Graph imag
 
 export const favicon = sh('favicon', 'make-favicon', 'Generate favicon set + site.webmanifest (--ico-only for just the .ico)', {
   logo:    { type: 'positional', description: 'Source logo image', required: true },
-  output:  { type: 'positional', description: 'Output directory (or .ico file path with --ico-only)' },
+  output:  { type: 'positional', description: 'Output directory (or .ico file path with --ico-only)', required: false },
   icoOnly: { type: 'boolean',    description: 'Generate only a .ico file (16–256px)', alias: 'ico-only' },
-})
+}, true)
 
 export const appIcons = sh('app-icons', 'make-app-icons', 'Generate app icon set for macOS, iOS, or Android', {
   logo:     { type: 'positional', description: 'Source logo image',                            required: true },
-  output:   { type: 'positional', description: 'Output directory' },
+  output:   { type: 'positional', description: 'Output directory', required: false },
   platform: { type: 'string',     description: 'Target platform: macos (default), ios, android', default: 'macos' },
-})
+}, true)
 
 export const pwaIcons = sh('pwa-icons', 'pwa-icons', 'Generate PWA icons + manifest snippet', {
   logo:    { type: 'positional', description: 'Source logo image',                       required: true },
-  output:  { type: 'positional', description: 'Output directory' },
+  output:  { type: 'positional', description: 'Output directory', required: false },
   bgColor: { type: 'positional', description: 'Background color for maskable icons',     default: '#ffffff' },
-})
+}, true)
 
 export const sprites = sh('sprites', 'make-sprites', 'Combine images into a sprite sheet + CSS', {
   dir:       { type: 'positional', description: 'Images directory', required: true },
@@ -270,10 +275,10 @@ export const gifToVideo = sh('gif-to-video', 'gif-to-video', 'Convert GIF to MP4
 
 export const videoToGif = sh('video-to-gif', 'video-to-gif', 'Convert video clip to optimized GIF', {
   input:  { type: 'positional', description: 'Source video',        required: true },
-  output: { type: 'positional', description: 'Output GIF' },
+  output: { type: 'positional', description: 'Output GIF', required: false },
   fps:    { type: 'positional', description: 'Frames per second',   default: '15' },
   width:  { type: 'positional', description: 'Output width in px',  default: '480' },
-})
+}, true)
 
 export const convertVideo = sh('convert-video', 'convert-video', 'Transcode video to a different format', {
   input:   { type: 'positional', description: 'Source video',                        required: true },
@@ -283,22 +288,25 @@ export const convertVideo = sh('convert-video', 'convert-video', 'Transcode vide
 
 export const compressVideo = sh('compress-video', 'compress-video', 'Reduce video file size', {
   input:    { type: 'positional', description: 'Source video',    required: true },
-  output:   { type: 'positional', description: 'Output file' },
+  output:   { type: 'positional', description: 'Output file', required: false },
   targetMb: { type: 'positional', description: 'Target file size in MB (omit for quality mode)', default: '' },
-})
+}, true)
 
 export const trimVideo = sh('trim-video', 'trim-video', 'Trim a video to a time range', {
   input:  { type: 'positional', description: 'Source video',                  required: true },
   start:  { type: 'positional', description: 'Start time (HH:MM:SS or secs)', required: true },
   end:    { type: 'positional', description: 'End time (HH:MM:SS or secs)',   required: true },
-  output: { type: 'positional', description: 'Output file' },
-})
+  output: { type: 'positional', description: 'Output file', required: false },
+}, true)
 
 export const extractFrames = sh('extract-frames', 'extract-frames', 'Export frames from a video as images', {
-  input:  { type: 'positional', description: 'Source video',                   required: true },
-  output: { type: 'positional', description: 'Output directory' },
+  input:  { type: 'positional', description: 'Source video',                      required: true },
+  output: { type: 'positional', description: 'Output directory',                  required: false },
   mode:   { type: 'positional', description: 'fps rate or "all" for every frame', default: '1' },
-})
+  count:  { type: 'string',     description: 'Extract exactly N frames evenly distributed' },
+  format: { type: 'string',     description: 'Output format: png (default), webp, jpg' },
+  scroll: { type: 'boolean',    description: 'Output manifest.json + JS scroll animation snippet' },
+}, true)
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
