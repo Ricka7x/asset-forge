@@ -1,6 +1,5 @@
 import chalk from 'chalk'
-
-const VERSION = '0.1.0'
+import { version as VERSION } from '../package.json'
 
 const ART = `
   ▄▀█ █▀ █▀ █▀▀ ▀█▀   █▀▀ █▀█ █▀█ █▀▀ █▀▀
