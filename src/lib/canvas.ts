@@ -9,7 +9,7 @@ let initialized = false
 export function initCanvas() {
   if (!initialized) {
     const config = getConfig()
-    const bundledDir = join(process.cwd(), 'scripts/fonts')
+    const bundledDir = join(process.cwd(), 'assets/fonts')
     
     // Priority 1: Bundled Inter (bundled for CI/CD consistency)
     if (existsSync(bundledDir)) {
