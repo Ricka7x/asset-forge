@@ -1,4 +1,4 @@
-import { renameSync, statSync } from 'fs'
+import { renameSync } from 'fs'
 import { join, dirname, basename, extname } from 'path'
 import { globFiles, IMAGE_EXTENSIONS } from '../lib/glob'
 import { defineCommand } from 'citty'

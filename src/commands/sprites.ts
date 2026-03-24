@@ -1,10 +1,9 @@
-import sharp from 'sharp'
 import { createCanvas, loadImage } from '@napi-rs/canvas'
 import { globFiles, IMAGE_EXTENSIONS } from '../lib/glob'
 import { resolveOutput } from '../lib/output'
 import { defineCommand } from 'citty'
-import { writeFileSync, existsSync, mkdirSync } from 'fs'
-import { join, basename } from 'path'
+import { writeFileSync } from 'fs'
+import { basename } from 'path'
 
 export default defineCommand({
   meta: {

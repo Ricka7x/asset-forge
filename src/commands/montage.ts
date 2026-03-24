@@ -1,4 +1,3 @@
-import sharp from 'sharp'
 import { createCanvas, loadImage } from '@napi-rs/canvas'
 import { globFiles, IMAGE_EXTENSIONS } from '../lib/glob'
 import { resolveOutput } from '../lib/output'

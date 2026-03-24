@@ -1,5 +1,4 @@
 import sharp from 'sharp'
-import { join, extname } from 'path'
 import { globFiles, IMAGE_EXTENSIONS } from '../lib/glob'
 import { resolveOutput } from '../lib/output'
 import { defineCommand } from 'citty'

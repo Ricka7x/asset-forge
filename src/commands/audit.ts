@@ -1,5 +1,5 @@
 import { statSync, existsSync } from 'fs'
-import { join, extname, basename, dirname } from 'path'
+import {  extname } from 'path'
 import { globFiles, IMAGE_EXTENSIONS } from '../lib/glob'
 import { defineCommand } from 'citty'
 import chalk from 'chalk'

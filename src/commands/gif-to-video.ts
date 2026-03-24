@@ -1,7 +1,6 @@
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegStatic from 'ffmpeg-static'
 import { join } from 'path'
-import { resolveOutput } from '../lib/output'
 import { defineCommand } from 'citty'
 import { existsSync, mkdirSync } from 'fs'
 

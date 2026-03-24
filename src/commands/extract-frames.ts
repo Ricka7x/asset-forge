@@ -1,7 +1,6 @@
 import ffmpeg from '../lib/ffmpeg'
 import { writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
-import { resolveOutput } from '../lib/output'
 import { defineCommand } from 'citty'
 
 export default defineCommand({
