@@ -6,7 +6,28 @@ on:
       - 'v*'
 
 jobs:
+  test:
+    name: Smoke tests
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build
+        run: npm run build
+
+      - name: Run smoke tests
+        run: bun test tests/smoke.test.ts
+
   npm-publish:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: write
