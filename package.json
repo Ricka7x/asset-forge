@@ -1,6 +1,6 @@
 {
   "name": "asset-forge",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "The complete asset toolkit for developers",
   "bin": {
     "asset-forge": "./dist/cli.js",
