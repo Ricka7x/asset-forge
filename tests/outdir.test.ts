@@ -1,25 +1,27 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
-import { spawnSync } from 'bun'
+import { spawnSync } from 'child_process'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
 import { join, resolve } from 'path'
 
-const CLI      = resolve('./dist/asset-forge')
+const CLI      = resolve('./dist/cli.js')
 const LOGO_ABS = resolve('./tests/fixtures/logo.png')
 const TMP      = resolve('./tests/tmp-outdir')
 
-// Run with full env but allow selective overrides.
-// FORGE_OUT is stripped by default so tests are isolated from any env that might have it set.
-// cwd is intentionally NOT overridden — the compiled binary locates scripts relative to its own
-// dir, but falls back to process.cwd(); keeping it at the project root ensures that fallback works.
 function run(envOverrides: Record<string, string | undefined>, ...args: string[]) {
   const env: Record<string, string> = {}
   for (const [k, v] of Object.entries({ ...process.env, FORGE_OUT: undefined, ...envOverrides })) {
     if (v !== undefined) env[k] = v
   }
-  return spawnSync([CLI, ...args], { stderr: 'pipe', stdout: 'pipe', env })
+  return spawnSync('node', [CLI, ...args], { 
+      encoding: 'utf-8',
+      env 
+  })
 }
 
-beforeAll(() => mkdirSync(TMP, { recursive: true }))
+beforeAll(() => {
+    if (existsSync(TMP)) rmSync(TMP, { recursive: true, force: true })
+    mkdirSync(TMP, { recursive: true })
+})
 afterAll(() => rmSync(TMP, { recursive: true, force: true }))
 
 describe('output directory fallback', () => {
@@ -28,7 +30,7 @@ describe('output directory fallback', () => {
       const out = join(TMP, 'forge-out')
       mkdirSync(out, { recursive: true })
       const result = run({ FORGE_OUT: out }, 'favicon', LOGO_ABS)
-      expect(result.exitCode).toBe(0)
+      expect(result.status).toBe(0)
       expect(existsSync(join(out, 'favicon', 'favicon.ico'))).toBe(true)
     })
 
@@ -36,7 +38,7 @@ describe('output directory fallback', () => {
       const out = join(TMP, 'forge-out-ico')
       mkdirSync(out, { recursive: true })
       const result = run({ FORGE_OUT: out }, 'favicon', LOGO_ABS, '--ico-only')
-      expect(result.exitCode).toBe(0)
+      expect(result.status).toBe(0)
       expect(existsSync(join(out, 'favicon.ico'))).toBe(true)
       expect(existsSync(join(out, 'favicon'))).toBe(false)
     })
@@ -45,7 +47,7 @@ describe('output directory fallback', () => {
       const out = join(TMP, 'forge-out-icons')
       mkdirSync(out, { recursive: true })
       const result = run({ FORGE_OUT: out }, 'app-icons', LOGO_ABS)
-      expect(result.exitCode).toBe(0)
+      expect(result.status).toBe(0)
       expect(existsSync(join(out, 'AppIcon.appiconset', 'Contents.json'))).toBe(true)
     })
 
@@ -53,7 +55,7 @@ describe('output directory fallback', () => {
       const out = join(TMP, 'forge-out-pwa')
       mkdirSync(out, { recursive: true })
       const result = run({ FORGE_OUT: out }, 'pwa-icons', LOGO_ABS)
-      expect(result.exitCode).toBe(0)
+      expect(result.status).toBe(0)
       expect(existsSync(join(out, 'pwa-icons', 'icon-192x192.png'))).toBe(true)
     })
   })
@@ -69,7 +71,7 @@ describe('output directory fallback', () => {
         JSON.stringify({ outDir: configuredOut })
       )
       const result = run({ HOME: fakeHome }, 'favicon', LOGO_ABS)
-      expect(result.exitCode).toBe(0)
+      expect(result.status).toBe(0)
       expect(existsSync(join(configuredOut, 'favicon', 'favicon.ico'))).toBe(true)
     })
   })
@@ -82,8 +84,8 @@ describe('output directory fallback', () => {
       // pass explicit output dir so files don't land in project root,
       // but tip still fires because neither FORGE_OUT nor config outDir is set
       const result = run({ HOME: fakeHome }, 'favicon', LOGO_ABS, out)
-      expect(result.exitCode).toBe(0)
-      const stdout = result.stdout.toString()
+      expect(result.status).toBe(0)
+      const stdout = result.stdout
       expect(stdout).toContain('Tip:')
       expect(stdout).toContain('forge config set outDir')
     })
@@ -94,8 +96,8 @@ describe('output directory fallback', () => {
       mkdirSync(out, { recursive: true })
       mkdirSync(fakeHome, { recursive: true })
       const result = run({ FORGE_OUT: out, HOME: fakeHome }, 'favicon', LOGO_ABS)
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout.toString()).not.toContain('Tip:')
+      expect(result.status).toBe(0)
+      expect(result.stdout).not.toContain('Tip:')
     })
 
     test('tip NOT shown when config outDir is set', () => {
@@ -108,8 +110,8 @@ describe('output directory fallback', () => {
         JSON.stringify({ outDir: configuredOut })
       )
       const result = run({ HOME: fakeHome }, 'favicon', LOGO_ABS)
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout.toString()).not.toContain('Tip:')
+      expect(result.status).toBe(0)
+      expect(result.stdout).not.toContain('Tip:')
     })
   })
 })

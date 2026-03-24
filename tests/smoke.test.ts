@@ -1,49 +1,53 @@
 import { describe, test, expect } from 'bun:test'
-import { spawnSync } from 'bun'
+import { spawnSync } from 'child_process'
 
-const CLI = './dist/asset-forge'
+const CLI = './dist/cli.js'
 
 function run(...args: string[]) {
-  return spawnSync([CLI, ...args], { stderr: 'pipe', stdout: 'pipe' })
+  // Use node to run the compiled CLI
+  return spawnSync('node', [CLI, ...args], { encoding: 'utf-8' })
 }
 
 const COMMANDS = [
   'optimize', 'resize', 'thumbnail', 'srcset', 'placeholder', 'blur-hash',
   'palette', 'watermark', 'shadow', 'border', 'round-corners', 'add-text',
-  'trim', 'montage', 'compare', 'strip-meta', 'audit', 'info', 'device-frame',
-  'duplicates', 'rename', 'convert', 'og-image', 'favicon', 'app-icons',
-  'pwa-icons', 'sprites', 'promo', 'feature-graphic',
-  'github-social', 'email-banner', 'gif-to-video', 'video-to-gif', 'convert-video',
-  'compress-video', 'trim-video', 'extract-frames',
+  'trim', 'montage', 'compare', 'strip-meta', 'audit', 'info',
+  'device-frame', 'duplicates', 'rename', 'convert',
+  'og-image', 'favicon', 'app-icons', 'pwa-icons', 'sprites',
+  'promo', 'feature-graphic', 'github-social', 'email-banner',
+  'gif-to-video', 'video-to-gif', 'convert-video', 'compress-video', 'trim-video', 'extract-frames',
+  'config'
 ]
 
 describe('smoke', () => {
   test('asset-forge --help exits 0', () => {
     const result = run('--help')
-    expect(result.exitCode).toBe(0)
+    expect(result.status).toBe(0)
   })
 
   test('asset-forge prints banner', () => {
-    const result = run('--help')
-    const output = result.stdout.toString()
-    expect(output).toContain('the complete asset toolkit')
+    const result = run() // No args to trigger banner
+    expect(result.stdout).toContain('the complete asset toolkit')
   })
 
-  test('asset-forge --version is not shown as unknown flag', () => {
-    const result = run('--help')
-    expect(result.exitCode).toBe(0)
+  test('asset-forge --version works', () => {
+    const result = run('--version')
+    expect(result.status).toBe(0)
   })
 
   for (const cmd of COMMANDS) {
     test(`asset-forge ${cmd} --help exits 0`, () => {
       const result = run(cmd, '--help')
-      expect(result.exitCode).toBe(0)
+      expect(result.status).toBe(0)
     })
 
-    test(`asset-forge ${cmd} --help shows command name`, () => {
+    test(`asset-forge ${cmd} --help shows command name or description`, () => {
       const result = run(cmd, '--help')
-      const output = result.stdout.toString()
-      expect(output).toContain(cmd)
+      if (cmd === 'config') {
+          expect(result.stdout).toContain('config')
+      } else {
+          expect(result.stdout.toLowerCase()).toContain(cmd.toLowerCase())
+      }
     })
   }
 })

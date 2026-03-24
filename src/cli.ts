@@ -4,24 +4,29 @@ import * as commands from './commands'
 import chalk from 'chalk'
 import { version } from '../package.json'
 
-// ── Command groups ─────────────────────────────────────────────────────────────
+// ── Command groups (Canonical Grouping) ──────────────────────────────────────────
 
 const GROUPS = [
   {
     label: 'Image',
-    keys: ['optimize','resize','thumbnail','srcset','placeholder','blur-hash','palette','watermark','shadow','border','round-corners','add-text','trim','montage','compare','strip-meta','audit','info','device-frame','duplicates','rename','convert'],
+    keys: [
+      'optimize', 'resize', 'thumbnail', 'srcset', 'placeholder', 'blur-hash',
+      'palette', 'watermark', 'shadow', 'border', 'round-corners', 'add-text',
+      'trim', 'montage', 'compare', 'strip-meta', 'audit', 'info',
+      'device-frame', 'duplicates', 'rename', 'convert'
+    ],
   },
   {
     label: 'Icons & Web',
-    keys: ['og-image','favicon','app-icons','pwa-icons','sprites'],
+    keys: ['og-image', 'favicon', 'app-icons', 'pwa-icons', 'sprites'],
   },
   {
     label: 'Marketing',
-    keys: ['promo','feature-graphic','github-social','email-banner'],
+    keys: ['promo', 'feature-graphic', 'github-social', 'email-banner'],
   },
   {
     label: 'Video',
-    keys: ['gif-to-video','video-to-gif','convert-video','compress-video','trim-video','extract-frames'],
+    keys: ['gif-to-video', 'video-to-gif', 'convert-video', 'compress-video', 'trim-video', 'extract-frames'],
   },
   {
     label: 'Config',
@@ -59,7 +64,7 @@ const SUB_COMMANDS = {
   'app-icons':       commands.appIcons,
   'pwa-icons':       commands.pwaIcons,
   'sprites':         commands.sprites,
-  // ── Marketing & Store ──────────────────────────────────
+  // ── Marketing ──────────────────────────────────────────
   'promo':           commands.promo,
   'feature-graphic': commands.featureGraphic,
   'github-social':   commands.githubSocial,
@@ -75,13 +80,55 @@ const SUB_COMMANDS = {
   'config':          commands.configCmd,
 }
 
+// ── Helper: Descriptions synchronized with User's Canonical List ───────────────
+
+const DESCRIPTIONS: Record<string, string> = {
+  'optimize':        'Compress images to AVIF/WebP',
+  'resize':          'Resize images',
+  'thumbnail':       'Generate center-cropped thumbnails',
+  'srcset':          'Generate @1x/@2x/@3x retina variants',
+  'placeholder':     'Generate LQIP base64 placeholder',
+  'blur-hash':       'Compute BlurHash string for an image',
+  'palette':         'Extract dominant color palette',
+  'watermark':       'Overlay a watermark on images',
+  'shadow':          'Add drop shadow to an image',
+  'border':          'Add a border to images',
+  'round-corners':   'Apply rounded corners to an image',
+  'add-text':        'Overlay text onto an image',
+  'trim':            'Auto-trim transparent/uniform borders',
+  'montage':         'Arrange images into a grid collage',
+  'compare':         'Side-by-side visual diff of two images',
+  'strip-meta':      'Remove EXIF metadata from images',
+  'audit':           'Audit an image or folder for issues',
+  'info':            'Show metadata and dimensions',
+  'device-frame':    'Wrap a screenshot in a device frame',
+  'duplicates':      'Find visually duplicate images',
+  'rename':          'Batch rename image files',
+  'convert':         'Convert image to a different format',
+  'og-image':        'Generate Open Graph image (1200×630)',
+  'favicon':         'Generate favicon set + site.webmanifest (--ico-only for just the .ico)',
+  'app-icons':       'Generate app icon set for macOS, iOS, or Android',
+  'pwa-icons':       'Generate PWA icons + manifest snippet',
+  'sprites':         'Combine images into a sprite sheet + CSS',
+  'promo':           'Generate App Store + social promo art',
+  'feature-graphic': 'Generate Google Play feature graphic (1024×500)',
+  'github-social':   'Generate GitHub social preview image (1280×640)',
+  'email-banner':    'Generate email header banner (600×200)',
+  'gif-to-video':    'Convert GIF to MP4/WebM',
+  'video-to-gif':    'Convert video clip to optimized GIF',
+  'convert-video':   'Transcode video to a different format',
+  'compress-video':  'Reduce video file size',
+  'trim-video':      'Trim a video to a time range',
+  'extract-frames':  'Export frames from a video as images',
+  'config':          'Manage forge configuration',
+}
+
 function getDescription(key: string): string {
-  const cmd = SUB_COMMANDS[key as keyof typeof SUB_COMMANDS] as any
-  return cmd?.meta?.description ?? ''
+  return DESCRIPTIONS[key] || (SUB_COMMANDS[key as keyof typeof SUB_COMMANDS] as any)?.meta?.description || ''
 }
 
 function printGroupedHelp() {
-  console.log(`\n  ${chalk.bold('forge')} ${chalk.dim(`v${version}`)}  —  ${GROUPS.reduce((n, g) => n + g.keys.length, 0)} commands\n`)
+  console.log(`\n  ${chalk.bold('forge')} ${chalk.dim(`v${version}`)}  —  ${Object.keys(SUB_COMMANDS).length} commands\n`)
   console.log(`  ${chalk.dim('USAGE')}  forge <command> [options]\n`)
 
   for (const group of GROUPS) {
@@ -143,7 +190,7 @@ const main = defineCommand({
   run() {
     printSummary()
   },
-  subCommands: SUB_COMMANDS,
+  subCommands: SUB_COMMANDS as any,
 })
 
 runMain(main)

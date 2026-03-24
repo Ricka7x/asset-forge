@@ -1,372 +1,47 @@
-import { defineCommand, type ArgsDef } from 'citty'
-import { join, dirname, resolve, isAbsolute } from 'path'
-import { existsSync, mkdirSync } from 'fs'
-import { getOutDir } from './config'
-
-function findScriptsDir(): string {
-  // 1. Running from source: bun run src/cli.ts
-  const fromSrc = join(import.meta.dir, '../scripts')
-  if (existsSync(fromSrc)) return fromSrc
-
-  // 2. Installed via Homebrew: binary at bin/, scripts at libexec/asset-forge/scripts/
-  const fromBrew = join(dirname(process.execPath), '..', 'libexec', 'asset-forge', 'scripts')
-  if (existsSync(fromBrew)) return fromBrew
-
-  // 3. Compiled binary run from the repo root (CI, local dist testing)
-  return join(process.cwd(), 'scripts')
-}
-
-const SCRIPTS_DIR = findScriptsDir()
-
-function sh(name: string, script: string, description: string, args: ArgsDef = {}, hintOutDir = false) {
-  return defineCommand({
-    meta: { name, description },
-    args,
-    run() {
-      const outDir = getOutDir()
-      mkdirSync(outDir, { recursive: true })
-
-      // Resolve any existing file/dir paths in argv to absolute so scripts
-      // can find them after we change the working directory.
-      const raw = process.argv.slice(3).map(arg => {
-        if (arg.startsWith('-')) return arg
-        // Only resolve args that look like file paths (contain / or start with .)
-        if (!arg.includes('/') && !arg.startsWith('.')) return arg
-        return isAbsolute(arg) ? arg : resolve(process.cwd(), arg)
-      })
-
-      const proc = Bun.spawnSync(['bash', join(SCRIPTS_DIR, `${script}.sh`), ...raw], {
-        stdio: ['inherit', 'inherit', 'inherit'],
-        cwd: outDir,
-      })
-
-      if (hintOutDir && proc.exitCode === 0 && !getConfig().outDir && !process.env.FORGE_OUT) {
-        console.log('\nTip: set a default output directory so you never need to specify one:\n  forge config set outDir ~/Desktop/assets')
-      }
-
-      process.exit(proc.exitCode ?? 0)
-    },
-  })
-}
-
 // ─── Image ────────────────────────────────────────────────────────────────────
-
-export const optimize = sh('optimize', 'optimize-images', 'Compress images to AVIF/WebP', {
-  src:     { type: 'positional', description: 'Source file or directory',      required: true },
-  dest:    { type: 'positional', description: 'Destination file or directory', required: false },
-  quality: { type: 'positional', description: 'Quality 1-100',                 default: '95' },
-}, true)
-
-export const resize = sh('resize', 'resize', 'Resize images', {
-  input:  { type: 'positional', description: 'File or directory',                       required: true },
-  spec:   { type: 'positional', description: 'Size spec: 800, 800x600, 50%, 800x600^', required: true },
-  output: { type: 'positional', description: 'Output directory', required: false },
-}, true)
-
-export const thumbnail = sh('thumbnail', 'make-thumbnail', 'Generate center-cropped thumbnails', {
-  src:     { type: 'positional', description: 'Source file or directory',      required: true },
-  dest:    { type: 'positional', description: 'Destination file or directory', required: false },
-  size:    { type: 'positional', description: 'Dimensions WxH',                default: '400x400' },
-  gravity: { type: 'positional', description: 'Crop anchor: NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast', default: 'Center' },
-}, true)
-
-export const srcset = sh('srcset', 'srcset', 'Generate @1x/@2x/@3x retina variants', {
-  image:  { type: 'positional', description: 'Source image',            required: true },
-  output: { type: 'positional', description: 'Output directory', required: false },
-  scales: { type: 'positional', description: 'Comma-separated scales',  default: '1,2,3' },
-}, true)
-
-export const placeholder = sh('placeholder', 'make-placeholder', 'Generate LQIP base64 placeholder', {
-  image:  { type: 'positional', description: 'Source image', required: true },
-  output: { type: 'positional', description: 'Output PNG path (optional, also prints data URI)', required: false },
-}, true)
-
-export const blurHash = sh('blur-hash', 'blur-hash', 'Compute BlurHash string for an image', {
-  image: { type: 'positional', description: 'Source image', required: true },
-})
-
-export const palette = sh('palette', 'palette', 'Extract dominant color palette', {
-  image:  { type: 'positional', description: 'Source image',           required: true },
-  colors: { type: 'positional', description: 'Number of colors',       default: '6' },
-  swatch: { type: 'positional', description: 'Save swatch PNG to this path', default: '' },
-})
-
-export const watermark = sh('watermark', 'watermark', 'Overlay a watermark on images', {
-  src:      { type: 'positional', description: 'Source file or directory',      required: true },
-  dest:     { type: 'positional', description: 'Destination file or directory', required: false },
-  logo:     { type: 'string',     description: 'Logo image',            alias: 'l' },
-  text:     { type: 'string',     description: 'Text watermark',        alias: 't' },
-  position: { type: 'string',     description: 'SouthEast, NorthEast, SouthWest, NorthWest, Center', alias: 'p', default: 'SouthEast' },
-  opacity:  { type: 'string',     description: 'Opacity 0-100',         alias: 'o', default: '70' },
-}, true)
-
-export const shadow = sh('shadow', 'shadow', 'Add drop shadow to an image', {
-  input:   { type: 'positional', description: 'Source image',  required: true },
-  output:  { type: 'positional', description: 'Output PNG', required: false },
-  blur:    { type: 'positional', description: 'Blur radius',   default: '20' },
-  opacity: { type: 'positional', description: 'Opacity 0-100', default: '80' },
-  offsetX: { type: 'positional', description: 'X offset',      default: '10' },
-  offsetY: { type: 'positional', description: 'Y offset',      default: '10' },
-  color:   { type: 'positional', description: 'Shadow color',  default: 'black' },
-}, true)
-
-export const border = sh('border', 'border', 'Add a border to images', {
-  input:  { type: 'positional', description: 'File or directory', required: true },
-  output: { type: 'positional', description: 'Output directory', required: false },
-  size:   { type: 'positional', description: 'Border size in px', default: '4' },
-  color:  { type: 'positional', description: 'Border color',      default: 'black' },
-}, true)
-
-export const roundCorners = sh('round-corners', 'round-corners', 'Apply rounded corners to an image', {
-  input:  { type: 'positional', description: 'Source image',         required: true },
-  output: { type: 'positional', description: 'Output PNG', required: false },
-  radius: { type: 'positional', description: 'Radius in px or %',   default: '10%' },
-}, true)
-
-export const addText = sh('add-text', 'add-text', 'Overlay text onto an image', {
-  input:   { type: 'positional', description: 'Source image',                    required: true },
-  text:    { type: 'positional', description: 'Text to overlay',                 required: true },
-  output:  { type: 'positional', description: 'Output file', required: false },
-  gravity: { type: 'positional', description: 'NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast', default: 'South' },
-  size:    { type: 'positional', description: 'Font size in px',                 default: '48' },
-  color:   { type: 'positional', description: 'Text color',                      default: 'white' },
-  font:    { type: 'positional', description: 'Font name', default: '' },
-}, true)
-
-export const trim = sh('trim', 'trim', 'Auto-trim transparent/uniform borders', {
-  input:  { type: 'positional', description: 'File or directory',     required: true },
-  output: { type: 'positional', description: 'Output directory or file', required: false },
-  fuzz:   { type: 'positional', description: 'Color tolerance 0-100%', default: '5' },
-}, true)
-
-export const montage = sh('montage', 'montage', 'Arrange images into a grid collage', {
-  dir:      { type: 'positional', description: 'Images directory',  required: true },
-  output:   { type: 'positional', description: 'Output PNG',         default: 'montage.png' },
-  columns:  { type: 'positional', description: 'Number of columns',  default: '4' },
-  tileSize: { type: 'positional', description: 'Tile size WxH',      default: '400x400' },
-  gap:      { type: 'positional', description: 'Gap in px',          default: '10' },
-})
-
-export const compare = sh('compare', 'compare', 'Side-by-side visual diff of two images', {
-  imageA:    { type: 'positional', description: 'First image',             required: true },
-  imageB:    { type: 'positional', description: 'Second image',            required: true },
-  output:    { type: 'positional', description: 'Output PNG',              default: 'compare.png' },
-  direction: { type: 'positional', description: 'horizontal or vertical',  default: 'horizontal' },
-})
-
-export const stripMeta = sh('strip-meta', 'strip-metadata', 'Remove EXIF metadata from images', {
-  input: { type: 'positional', description: 'File or directory', required: true },
-})
-
-export const audit = sh('audit', 'audit-images', 'Audit an image or folder for issues', {
-  dir:       { type: 'positional', description: 'File or directory to audit',   required: true },
-  threshold: { type: 'positional', description: 'Size warning threshold in KB', default: '200' },
-})
-
-export const info = sh('info', 'info', 'Show metadata and dimensions', {
-  images: { type: 'positional', description: 'One or more image files', required: true },
-})
-
-export const deviceFrame = sh('device-frame', 'device-frame', 'Wrap a screenshot in a device frame', {
-  input:  { type: 'positional', description: 'Screenshot image',              required: true },
-  output: { type: 'positional', description: 'Output PNG', required: false },
-  device: { type: 'positional', description: 'iphone, android, or browser',  default: 'iphone' },
-}, true)
-
-export const duplicates = sh('duplicates', 'duplicates', 'Find visually duplicate images', {
-  dir:       { type: 'positional', description: 'Directory to scan',                     required: true },
-  threshold: { type: 'positional', description: 'Hamming distance 0-64 (0 = exact)',     default: '6' },
-})
-
-export const rename = sh('rename', 'rename', 'Batch rename image files', {
-  dir:      { type: 'positional', description: 'Directory to rename', required: true },
-  prefix:   { type: 'string',     description: 'Add prefix to filenames' },
-  suffix:   { type: 'string',     description: 'Add suffix to filenames' },
-  slugify:  { type: 'boolean',    description: 'Convert names to slug-case' },
-  sequence: { type: 'string',     description: 'Rename to sequential numbers, starting from N' },
-  dryRun:   { type: 'boolean',    description: 'Preview changes without renaming', alias: 'n' },
-})
-
-export const convert = sh('convert', 'convert', 'Convert image to a different format', {
-  input:   { type: 'positional', description: 'Source image',                  required: true },
-  output:  { type: 'positional', description: 'Output file with target extension', required: true },
-  quality: { type: 'positional', description: 'Quality 1-100',                 default: '90' },
-})
+export { default as optimize } from './commands/optimize'
+export { default as resize } from './commands/resize'
+export { default as thumbnail } from './commands/thumbnail'
+export { default as convert } from './commands/convert'
+export { default as info } from './commands/info'
+export { default as trim } from './commands/trim'
+export { default as stripMeta } from './commands/strip-meta'
+export { default as border } from './commands/border'
+export { default as roundCorners } from './commands/round-corners'
+export { default as shadow } from './commands/shadow'
+export { default as rename } from './commands/rename'
+export { default as palette } from './commands/palette'
+export { default as blurHash } from './commands/blur-hash'
+export { default as duplicates } from './commands/duplicates'
+export { default as audit } from './commands/audit'
+export { default as srcset } from './commands/srcset'
+export { default as placeholder } from './commands/placeholder'
+export { default as watermark } from './commands/watermark'
+export { default as compare } from './commands/compare'
+export { default as montage } from './commands/montage'
+export { default as sprites } from './commands/sprites'
+export { default as addText } from './commands/add-text'
 
 // ─── Icons & Web ──────────────────────────────────────────────────────────────
+export { default as ogImage } from './commands/og-image'
+export { default as favicon } from './commands/favicon'
+export { default as appIcons } from './commands/app-icons'
+export { default as pwaIcons } from './commands/pwa-icons'
+export { default as deviceFrame } from './commands/device-frame'
 
-export const ogImage = sh('og-image', 'make-og-image', 'Generate Open Graph image (1200×630)', {
-  background: { type: 'string', description: 'Background image',                alias: 'b', required: true },
-  headline:   { type: 'string', description: 'Headline text',                   alias: 't' },
-  subtitle:   { type: 'string', description: 'Subtitle text',                   alias: 's' },
-  logo:       { type: 'string', description: 'Logo image',                      alias: 'l' },
-  output:     { type: 'string', description: 'Output file',                     alias: 'o', default: 'og-image.png' },
-  gravity:    { type: 'string', description: 'NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast', alias: 'g', default: 'Center' },
-  overlay:    { type: 'string', description: 'Overlay color',                   alias: 'c', default: 'rgba(0,0,0,0.45)' },
-  color:      { type: 'string', description: 'Text color',                      alias: 'f', default: 'white' },
-})
-
-export const favicon = sh('favicon', 'make-favicon', 'Generate favicon set + site.webmanifest (--ico-only for just the .ico)', {
-  logo:    { type: 'positional', description: 'Source logo image', required: true },
-  output:  { type: 'positional', description: 'Output directory (or .ico file path with --ico-only)', required: false },
-  icoOnly: { type: 'boolean',    description: 'Generate only a .ico file (16–256px)', alias: 'ico-only' },
-}, true)
-
-export const appIcons = sh('app-icons', 'make-app-icons', 'Generate app icon set for macOS, iOS, or Android', {
-  logo:     { type: 'positional', description: 'Source logo image',                            required: true },
-  output:   { type: 'positional', description: 'Output directory', required: false },
-  platform: { type: 'string',     description: 'Target platform: macos (default), ios, android', default: 'macos' },
-}, true)
-
-export const pwaIcons = sh('pwa-icons', 'pwa-icons', 'Generate PWA icons + manifest snippet', {
-  logo:    { type: 'positional', description: 'Source logo image',                       required: true },
-  output:  { type: 'positional', description: 'Output directory', required: false },
-  bgColor: { type: 'positional', description: 'Background color for maskable icons',     default: '#ffffff' },
-}, true)
-
-export const sprites = sh('sprites', 'make-sprites', 'Combine images into a sprite sheet + CSS', {
-  dir:       { type: 'positional', description: 'Images directory', required: true },
-  name:      { type: 'positional', description: 'Output base name', default: 'sprite' },
-  cssPrefix: { type: 'positional', description: 'CSS class prefix', default: '.sprite' },
-})
-
-// ─── Marketing & Store ────────────────────────────────────────────────────────
-
-export const promo = sh('promo', 'make-promo', 'Generate App Store + social promo art', {
-  background: { type: 'string', description: 'Background image', alias: 'b', required: true },
-  logo:       { type: 'string', description: 'Logo image',       alias: 'l', required: true },
-  headline:   { type: 'string', description: 'Headline text',    alias: 't', required: true },
-  subtitle:   { type: 'string', description: 'Subtitle text',    alias: 's' },
-  overlay:    { type: 'string', description: 'Overlay color',    alias: 'c', default: 'rgba(0,0,0,0.45)' },
-  color:      { type: 'string', description: 'Text color',       alias: 'f', default: 'white' },
-  output:     { type: 'string', description: 'Output directory', alias: 'o', default: './promo' },
-})
-
-export const featureGraphic = sh('feature-graphic', 'make-feature-graphic', 'Generate Google Play feature graphic (1024×500)', {
-  background: { type: 'string', description: 'Background image', alias: 'b', required: true },
-  headline:   { type: 'string', description: 'Headline text',    alias: 't', required: true },
-  logo:       { type: 'string', description: 'Logo image',       alias: 'l' },
-  subtitle:   { type: 'string', description: 'Subtitle text',    alias: 's' },
-  output:     { type: 'string', description: 'Output file',      alias: 'o', default: 'feature-graphic.png' },
-})
-
-export const githubSocial = sh('github-social', 'make-github-social', 'Generate GitHub social preview image (1280×640)', {
-  background: { type: 'string', description: 'Background image', alias: 'b', required: true },
-  headline:   { type: 'string', description: 'Headline text',    alias: 't', required: true },
-  logo:       { type: 'string', description: 'Logo image',       alias: 'l' },
-  subtitle:   { type: 'string', description: 'Subtitle text',    alias: 's' },
-  output:     { type: 'string', description: 'Output file',      alias: 'o', default: 'github-social.png' },
-})
-
-export const emailBanner = sh('email-banner', 'make-email-banner', 'Generate email header banner (600×200)', {
-  background: { type: 'string', description: 'Background image', alias: 'b', required: true },
-  logo:       { type: 'string', description: 'Logo image',       alias: 'l' },
-  headline:   { type: 'string', description: 'Headline text',    alias: 't' },
-  subtitle:   { type: 'string', description: 'Subtitle text',    alias: 's' },
-  output:     { type: 'string', description: 'Output file',      alias: 'o', default: 'email-banner.png' },
-})
+// ─── Marketing ────────────────────────────────────────────────────────────────
+export { default as promo } from './commands/promo'
+export { default as featureGraphic } from './commands/feature-graphic'
+export { default as githubSocial } from './commands/github-social'
+export { default as emailBanner } from './commands/email-banner'
 
 // ─── Video ────────────────────────────────────────────────────────────────────
-
-export const gifToVideo = sh('gif-to-video', 'gif-to-video', 'Convert GIF to MP4/WebM', {
-  input:  { type: 'positional', description: 'Source GIF',       required: true },
-  output: { type: 'positional', description: 'Output directory', default: '.' },
-})
-
-export const videoToGif = sh('video-to-gif', 'video-to-gif', 'Convert video clip to optimized GIF', {
-  input:  { type: 'positional', description: 'Source video',        required: true },
-  output: { type: 'positional', description: 'Output GIF', required: false },
-  fps:    { type: 'positional', description: 'Frames per second',   default: '15' },
-  width:  { type: 'positional', description: 'Output width in px',  default: '480' },
-}, true)
-
-export const convertVideo = sh('convert-video', 'convert-video', 'Transcode video to a different format', {
-  input:   { type: 'positional', description: 'Source video',                        required: true },
-  output:  { type: 'positional', description: 'Output file (format from extension)', required: true },
-  quality: { type: 'positional', description: 'CRF quality 0-51 (lower = better)',  default: '23' },
-})
-
-export const compressVideo = sh('compress-video', 'compress-video', 'Reduce video file size', {
-  input:    { type: 'positional', description: 'Source video',    required: true },
-  output:   { type: 'positional', description: 'Output file', required: false },
-  targetMb: { type: 'positional', description: 'Target file size in MB (omit for quality mode)', default: '' },
-}, true)
-
-export const trimVideo = sh('trim-video', 'trim-video', 'Trim a video to a time range', {
-  input:  { type: 'positional', description: 'Source video',                  required: true },
-  start:  { type: 'positional', description: 'Start time (HH:MM:SS or secs)', required: true },
-  end:    { type: 'positional', description: 'End time (HH:MM:SS or secs)',   required: true },
-  output: { type: 'positional', description: 'Output file', required: false },
-}, true)
-
-export const extractFrames = sh('extract-frames', 'extract-frames', 'Export frames from a video as images', {
-  input:  { type: 'positional', description: 'Source video',                      required: true },
-  output: { type: 'positional', description: 'Output directory',                  required: false },
-  mode:   { type: 'positional', description: 'fps rate or "all" for every frame', default: '1' },
-  count:  { type: 'string',     description: 'Extract exactly N frames evenly distributed' },
-  format: { type: 'string',     description: 'Output format: png (default), webp, jpg' },
-  scroll: { type: 'boolean',    description: 'Output manifest.json + JS scroll animation snippet' },
-}, true)
+export { default as extractFrames } from './commands/extract-frames'
+export { default as gifToVideo } from './commands/gif-to-video'
+export { default as videoToGif } from './commands/video-to-gif'
+export { default as convertVideo } from './commands/convert-video'
+export { default as compressVideo } from './commands/compress-video'
+export { default as trimVideo } from './commands/trim-video'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-
-import chalk from 'chalk'
-import { getConfig, setConfig, getOutDir as _getOutDir } from './config'
-
-export const configCmd = defineCommand({
-  meta: { name: 'config', description: 'Manage forge configuration' },
-  subCommands: {
-    set: defineCommand({
-      meta: { name: 'set', description: 'Set a config value' },
-      args: {
-        key:   { type: 'positional', description: 'Config key (e.g. outDir)', required: true },
-        value: { type: 'positional', description: 'Value to set',             required: true },
-      },
-      run({ args }) {
-        const valid = ['outDir', 'fontBold', 'fontRegular']
-        if (!valid.includes(String(args.key))) {
-          console.error(chalk.red(`Unknown config key: ${args.key}`))
-          console.error(chalk.dim(`  Available keys: ${valid.join(', ')}`))
-          process.exit(1)
-        }
-        setConfig(args.key as 'outDir' | 'fontBold' | 'fontRegular', String(args.value))
-        console.log(chalk.green(`✓ ${args.key} → ${args.value}`))
-      },
-    }),
-    get: defineCommand({
-      meta: { name: 'get', description: 'Get a config value (or show all)' },
-      args: {
-        key: { type: 'positional', description: 'Config key (optional — omit to show all)', default: '' },
-      },
-      run({ args }) {
-        const cfg = getConfig()
-        if (args.key) {
-          const val = cfg[args.key as keyof typeof cfg]
-          console.log(val ?? chalk.dim('(not set)'))
-        } else {
-          const outDir = _getOutDir()
-          const outSource = process.env.FORGE_OUT
-            ? chalk.dim('(from FORGE_OUT)')
-            : cfg.outDir
-            ? chalk.dim('(from config)')
-            : chalk.dim('(default: cwd)')
-          console.log(`outDir       ${chalk.cyan(outDir)}  ${outSource}`)
-
-          const fontBold = process.env.FORGE_FONT_BOLD ?? cfg.fontBold
-          const fontRegular = process.env.FORGE_FONT_REGULAR ?? cfg.fontRegular
-          const fontSource = (env: string | undefined, cfg: string | undefined) =>
-            env ? chalk.dim('(from env)') : cfg ? chalk.dim('(from config)') : chalk.dim('(auto-detect)')
-          console.log(`fontBold     ${chalk.cyan(fontBold ?? 'auto')}  ${fontSource(process.env.FORGE_FONT_BOLD, cfg.fontBold)}`)
-          console.log(`fontRegular  ${chalk.cyan(fontRegular ?? 'auto')}  ${fontSource(process.env.FORGE_FONT_REGULAR, cfg.fontRegular)}`)
-        }
-      },
-    }),
-    reset: defineCommand({
-      meta: { name: 'reset', description: 'Reset all config to defaults' },
-      run() {
-        setConfig('outDir', '')
-        console.log(chalk.green('✓ Config reset to defaults'))
-      },
-    }),
-  },
-})
+export { configCmd } from './commands/config'
