@@ -1,5 +1,5 @@
 {
-  "name": "asset-forge",
+  "name": "@ricka7x/asset-forge",
   "version": "0.3.2",
   "description": "The complete asset toolkit for developers",
   "bin": {

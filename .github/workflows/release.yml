@@ -54,7 +54,7 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           VERSION="${VERSION#v}"
-          URL="https://registry.npmjs.org/asset-forge/-/asset-forge-${VERSION}.tgz"
+          URL="https://registry.npmjs.org/@ricka7x/asset-forge/-/asset-forge-${VERSION}.tgz"
           for i in $(seq 1 10); do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
             if [ "$STATUS" = "200" ]; then break; fi
