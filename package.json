@@ -2,6 +2,10 @@
   "name": "@ricka7x/asset-forge",
   "version": "0.3.2",
   "description": "The complete asset toolkit for developers",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ricka7x/asset-forge"
+  },
   "bin": {
     "asset-forge": "./dist/cli.js",
     "forge": "./dist/cli.js"
