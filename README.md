@@ -169,11 +169,10 @@ asset-forge --help
 
 For every new version:
 
-1. Bump `version` in `package.json` and `src/banner.ts`
-2. Push a new tag: `git tag v0.2.0 && git push origin v0.2.0`
-3. Wait for the GitHub Actions release to finish
-4. Update `version` and the three `sha256` values in `Formula/asset-forge.rb`
-5. Push the updated formula to `homebrew-asset-forge`
+1. Run `./release.sh <version>` — bumps `package.json`, builds to verify, commits, tags, and pushes
+2. Wait for the GitHub Actions release to finish
+3. Update `version` and the three `sha256` values in `Formula/asset-forge.rb`
+4. Push the updated formula to `homebrew-asset-forge`
 
 ---
 
