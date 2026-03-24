@@ -10,7 +10,7 @@ const main = defineCommand({
     description: 'The complete asset toolkit for developers',
   },
   run() {
-    console.log('  Run asset-forge --help to see available commands.\n')
+    console.log('  Run asset-forge --help or forge --help to see available commands.\n')
   },
   subCommands: {
     // ── Image ──────────────────────────────────────────────
