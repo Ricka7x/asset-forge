@@ -22,15 +22,12 @@ echo "Preparing release v$VERSION..."
 # Bump version in package.json
 sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" package.json
 
-# Bump version in src/banner.ts
-sed -i '' "s/const VERSION = '[^']*'/const VERSION = '$VERSION'/" src/banner.ts
-
 # Build to verify it compiles cleanly
 echo "Building..."
 bun run build
 
 echo "Committing and tagging..."
-git add package.json src/banner.ts
+git add package.json
 git commit -m "chore: release v$VERSION"
 git tag "v$VERSION"
 git push origin main "v$VERSION"
