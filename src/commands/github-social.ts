@@ -38,8 +38,7 @@ export async function githubSocial(args: any) {
       theme: args.theme as any,
       overlayColor: args.theme === 'dark' ? 'rgba(0,0,0,0.45)' : undefined,
       logoPx: 160, logoY: 90,
-      headlineY: 280, subtitleY: 380,
-      headlinePt: 80,  subtitlePt: 40
+      headlinePt: 80, subtitlePt: 40
     })
 
     writeFileSync(finalPath, buf)

@@ -37,9 +37,8 @@ export async function featureGraphic(args: any) {
       subtitle: args.subtitle,
       theme: args.theme as any,
       overlayColor: args.theme === 'dark' ? 'rgba(0,0,0,0.45)' : undefined,
-      logoPx: 140, logoY: 70,
-      headlineY: 200, subtitleY: 300,
-      headlinePt: 72,  subtitlePt: 36
+      logoPx: 140, logoY: 50,
+      headlinePt: 72, subtitlePt: 36
     })
 
     writeFileSync(finalPath, buf)

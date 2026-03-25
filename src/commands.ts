@@ -1,6 +1,7 @@
 // ─── Image ────────────────────────────────────────────────────────────────────
 export { default as optimize } from './commands/optimize'
 export { default as resize } from './commands/resize'
+export { default as upscale } from './commands/upscale'
 export { default as thumbnail } from './commands/thumbnail'
 export { default as convert } from './commands/convert'
 export { default as info } from './commands/info'

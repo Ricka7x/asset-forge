@@ -10,7 +10,7 @@ const GROUPS = [
   {
     label: 'Image',
     keys: [
-      'optimize', 'resize', 'thumbnail', 'srcset', 'placeholder', 'blur-hash',
+      'optimize', 'resize', 'upscale', 'thumbnail', 'srcset', 'placeholder', 'blur-hash',
       'palette', 'watermark', 'shadow', 'border', 'round-corners', 'add-text',
       'trim', 'montage', 'compare', 'strip-meta', 'audit', 'info',
       'device-frame', 'duplicates', 'rename', 'convert'
@@ -38,6 +38,7 @@ const SUB_COMMANDS = {
   // ── Image ──────────────────────────────────────────────
   'optimize':        commands.optimize,
   'resize':          commands.resize,
+  'upscale':         commands.upscale,
   'thumbnail':       commands.thumbnail,
   'srcset':          commands.srcset,
   'placeholder':     commands.placeholder,
@@ -85,6 +86,7 @@ const SUB_COMMANDS = {
 const DESCRIPTIONS: Record<string, string> = {
   'optimize':        'Compress images to AVIF/WebP',
   'resize':          'Resize images',
+  'upscale':         'Upscale images 2x/3x/4x with Lanczos resampling',
   'thumbnail':       'Generate center-cropped thumbnails',
   'srcset':          'Generate @1x/@2x/@3x retina variants',
   'placeholder':     'Generate LQIP base64 placeholder',

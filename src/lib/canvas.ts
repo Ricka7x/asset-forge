@@ -9,7 +9,7 @@ let initialized = false
 export function initCanvas() {
   if (!initialized) {
     const config = getConfig()
-    const bundledDir = join(process.cwd(), 'assets/fonts')
+    const bundledDir = join(import.meta.dir, '../../assets/fonts')
     
     // Priority 1: Bundled Inter (bundled for CI/CD consistency)
     if (existsSync(bundledDir)) {
@@ -103,16 +103,18 @@ export async function composeMarketingAsset(opts: {
   }
 
   // 3. Logo
+  let contentStartY = opts.height * 0.15
   if (opts.logo && existsSync(opts.logo)) {
     const logoImg = await loadImage(opts.logo)
     const lPx = opts.logoPx || 200
-    const lY = opts.logoY || (opts.height * 0.15)
-    
+    const lY = opts.logoY || (opts.height * 0.12)
+
     const lAspect = logoImg.width / logoImg.height
     let lw = lPx, lh = lPx / lAspect
     if (lh > lPx) { lh = lPx; lw = lPx * lAspect }
-    
+
     ctx.drawImage(logoImg, (opts.width - lw) / 2, lY, lw, lh)
+    contentStartY = lY + lh + opts.width * 0.05
   }
 
   // 4. Text
@@ -121,16 +123,16 @@ export async function composeMarketingAsset(opts: {
   ctx.textAlign = 'center'
   const textAreaW = opts.width * 0.85
 
-  // Headline
+  // Headline — use provided Y or auto-position below logo
   const hPt = opts.headlinePt || Math.floor(opts.width / 15)
-  const hY = opts.headlineY || (opts.height / 2)
+  const hY = opts.headlineY ?? contentStartY + hPt
   ctx.font = `bold ${hPt}px Inter, "Inter-Bold", sans-serif`
   const nextY = drawWrappedText(ctx, opts.headline, opts.width / 2, hY, textAreaW, hPt * 1.2)
 
   // Subtitle
   if (opts.subtitle) {
     const sPt = opts.subtitlePt || Math.floor(hPt / 2)
-    const sY = opts.subtitleY || nextY
+    const sY = opts.subtitleY ?? nextY + sPt * 0.5
     ctx.font = `${sPt}px Inter, "Inter-Regular", sans-serif`
     drawWrappedText(ctx, opts.subtitle, opts.width / 2, sY, textAreaW, sPt * 1.3)
   }

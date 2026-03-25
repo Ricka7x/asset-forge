@@ -37,9 +37,8 @@ export async function emailBanner(args: any) {
       subtitle: args.subtitle,
       theme: args.theme as any,
       overlayColor: args.theme === 'dark' ? 'rgba(0,0,0,0.35)' : undefined,
-      logoPx: 70,  logoY: 20,
-      headlineY: 90, subtitleY: 130,
-      headlinePt: 36,  subtitlePt: 18
+      logoPx: 70, logoY: 20,
+      headlinePt: 36, subtitlePt: 18
     })
 
     writeFileSync(finalPath, buf)

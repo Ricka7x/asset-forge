@@ -9,7 +9,7 @@ function run(...args: string[]) {
 }
 
 const COMMANDS = [
-  'optimize', 'resize', 'thumbnail', 'srcset', 'placeholder', 'blur-hash',
+  'optimize', 'resize', 'upscale', 'thumbnail', 'srcset', 'placeholder', 'blur-hash',
   'palette', 'watermark', 'shadow', 'border', 'round-corners', 'add-text',
   'trim', 'montage', 'compare', 'strip-meta', 'audit', 'info',
   'device-frame', 'duplicates', 'rename', 'convert',

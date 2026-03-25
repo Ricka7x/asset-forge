@@ -40,12 +40,12 @@ export async function promo(args: MarketingOptions) {
     console.log(`Generating promo assets into → ${outDir}/`)
 
     const SIZES = [
-      { name: 'appstore-iphone.png', w: 1290, h: 2796, lp: 300, ly: 180, hy: 560, sy: 720, hpt: 120, spt: 60 },
-      { name: 'appstore-ipad.png',   w: 2048, h: 1536, lp: 260, ly: 200, hy: 560, sy: 700, hpt: 110, spt: 54 },
-      { name: 'social-square.png',  w: 1080, h: 1080, lp: 200, ly: 140, hy: 420, sy: 540, hpt: 90,  spt: 44 },
-      { name: 'social-story.png',   w: 1080, h: 1920, lp: 220, ly: 260, hy: 680, sy: 820, hpt: 100, spt: 50 },
-      { name: 'twitter-banner.png', w: 1500, h: 500,  lp: 120, ly: 80,  hy: 200, sy: 290, hpt: 72,  spt: 36 },
-      { name: 'og-image.png',       w: 1200, h: 630,  lp: 160, ly: 90,  hy: 280, sy: 380, hpt: 80,  spt: 40 },
+      { name: 'appstore-iphone.png', w: 1290, h: 2796, lp: 300, ly: 180, hpt: 120, spt: 60 },
+      { name: 'appstore-ipad.png',   w: 2048, h: 1536, lp: 260, ly: 200, hpt: 110, spt: 54 },
+      { name: 'social-square.png',   w: 1080, h: 1080, lp: 200, ly: 140, hpt: 90,  spt: 44 },
+      { name: 'social-story.png',    w: 1080, h: 1920, lp: 220, ly: 260, hpt: 100, spt: 50 },
+      { name: 'twitter-banner.png',  w: 1500, h: 500,  lp: 120, ly: 80,  hpt: 72,  spt: 36 },
+      { name: 'og-image.png',        w: 1200, h: 630,  lp: 160, ly: 90,  hpt: 80,  spt: 40 },
     ]
 
     for (const s of SIZES) {
@@ -58,7 +58,6 @@ export async function promo(args: MarketingOptions) {
         theme: args.theme,
         overlayColor: args.color || (args.theme === 'dark' ? 'rgba(0,0,0,0.45)' : undefined),
         logoPx: s.lp, logoY: s.ly,
-        headlineY: s.hy, subtitleY: s.sy,
         headlinePt: s.hpt, subtitlePt: s.spt
       })
       const path = join(outDir, `promo-${s.name}`)

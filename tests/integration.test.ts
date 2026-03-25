@@ -38,6 +38,39 @@ describe('integration', () => {
     })
   })
 
+  describe('upscale', () => {
+    test('2x doubles the dimensions', async () => {
+      run('upscale', LOGO, '2', OUT_DIR)
+      const file = join(OUT_DIR, 'logo@2x.png')
+      expect(existsSync(file)).toBe(true)
+      const size = await imageSize(file)
+      expect(size.width).toBe(1024)
+      expect(size.height).toBe(1024)
+    })
+
+    test('3x triples the dimensions', async () => {
+      run('upscale', LOGO, '3', OUT_DIR)
+      const file = join(OUT_DIR, 'logo@3x.png')
+      expect(existsSync(file)).toBe(true)
+      const size = await imageSize(file)
+      expect(size.width).toBe(1536)
+      expect(size.height).toBe(1536)
+    })
+
+    test('accepts Nx notation (e.g. 4x)', async () => {
+      run('upscale', LOGO, '4x', OUT_DIR)
+      const file = join(OUT_DIR, 'logo@4x.png')
+      expect(existsSync(file)).toBe(true)
+      const size = await imageSize(file)
+      expect(size.width).toBe(2048)
+    })
+
+    test('exits non-zero on invalid scale', () => {
+      const result = run('upscale', LOGO, '99x', OUT_DIR)
+      expect(result.status).not.toBe(0)
+    })
+  })
+
   describe('og-image', () => {
     test('produces a 1200x630 image', async () => {
       const out = join(OUT_DIR, 'og.png')
