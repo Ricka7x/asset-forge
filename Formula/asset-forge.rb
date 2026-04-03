@@ -1,7 +1,7 @@
 class AssetForge < Formula
   desc "The complete asset toolkit for developers"
   homepage "https://github.com/Ricka7x/asset-forge"
-  url "https://registry.npmjs.org/asset-forge/-/asset-forge-0.3.0.tgz"
+  url "https://registry.npmjs.org/@ricka7x/asset-forge/-/asset-forge-0.3.4.tgz"
   sha256 "PLACEHOLDER_NPM_TARBALL_SHA"
 
   depends_on "node"

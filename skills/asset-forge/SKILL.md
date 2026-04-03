@@ -7,7 +7,7 @@ description: "Use the asset-forge CLI or programmatic API to generate and proces
 
 The complete asset toolkit for developers. High-performance image and video processing available via CLI and Node.js library.
 
-**Install:** `npm install -g asset-forge` or `brew install ricka7x/tap/asset-forge`
+**Install:** `npm i -g @ricka7x/asset-forge` or `brew install ricka7x/tap/asset-forge`
 
 **Zero system dependencies required.**
 
@@ -34,7 +34,7 @@ forge config reset                              # restore defaults
 Asset Forge is a first-class Node.js library for your build scripts.
 
 ```javascript
-import { optimize, resize, ogImage, promo, configure } from 'asset-forge'
+import { optimize, resize, ogImage, promo, configure } from '@ricka7x/asset-forge'
 
 // Setup defaults
 configure({ outDir: './public', fontBold: './fonts/Inter-Bold.ttf' })

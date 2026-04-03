@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'bun:test'
 import { spawnSync } from 'child_process'
+import { existsSync, readFileSync } from 'fs'
 
 const CLI = './dist/cli.js'
 
@@ -20,6 +21,16 @@ const COMMANDS = [
 ]
 
 describe('smoke', () => {
+  test('build output does not contain repo-specific absolute paths', () => {
+    const cli = readFileSync(CLI, 'utf-8')
+    expect(cli).not.toContain(process.cwd())
+    expect(cli).not.toContain('/home/runner/work/asset-forge')
+  })
+
+  test('build does not emit stray native executable', () => {
+    expect(existsSync('./dist/asset-forge')).toBe(false)
+  })
+
   test('asset-forge --help exits 0', () => {
     const result = run('--help')
     expect(result.status).toBe(0)

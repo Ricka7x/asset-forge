@@ -1,28 +1,27 @@
-import { build } from 'bun'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { spawnSync } from 'child_process'
 
-const results = await build({
-  entrypoints: ['./src/cli.ts', './src/index.ts'],
-  outdir: './dist',
-  target: 'node',
-  format: 'cjs',
-  minify: false,
-  sourcemap: 'external',
-  external: ['file-type', 'image-hash', 'node-vibrant', 'sharp', '@napi-rs/canvas', 'fluent-ffmpeg'],
-})
-
-if (!results.success) {
-  console.error('Build failed')
-  for (const message of results.logs) {
-    console.error(message)
-  }
-  process.exit(1)
+if (existsSync('./dist')) {
+  rmSync('./dist', { recursive: true, force: true })
 }
 
-// Add shebang
+const result = spawnSync('bun', ['x', 'tsc', '-p', 'tsconfig.build.json'], {
+  stdio: 'inherit',
+})
+
+if (result.status !== 0) {
+  process.exit(result.status ?? 1)
+}
+
 const cliPath = './dist/cli.js'
-const content = await Bun.file(cliPath).text()
+const content = readFileSync(cliPath, 'utf8')
 if (!content.startsWith('#!')) {
-  await Bun.write(cliPath, `#!/usr/bin/env node\n${content}`)
+  writeFileSync(cliPath, `#!/usr/bin/env node\n${content}`)
+}
+
+const strayExecutable = './dist/asset-forge'
+if (existsSync(strayExecutable)) {
+  rmSync(strayExecutable, { force: true })
 }
 
 console.log('Build successful')

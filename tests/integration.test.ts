@@ -123,6 +123,18 @@ describe('integration', () => {
     })
   })
 
+  describe('device-frame', () => {
+    test('wraps a screenshot without external frame assets', async () => {
+      const out = join(OUT_DIR, 'device-frame.png')
+      const result = run('device-frame', PHOTO, out, 'browser')
+      expect(result.status).toBe(0)
+      expect(existsSync(out)).toBe(true)
+      const size = await imageSize(out)
+      expect(size.width).toBeGreaterThan(1200)
+      expect(size.height).toBeGreaterThan(630)
+    })
+  })
+
   describe('thumbnail', () => {
     test('produces correctly sized thumbnails', async () => {
       const out = join(OUT_DIR, 'thumb.png')

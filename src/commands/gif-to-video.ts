@@ -1,10 +1,7 @@
-import ffmpeg from 'fluent-ffmpeg'
-import ffmpegStatic from 'ffmpeg-static'
+import ffmpeg from '../lib/ffmpeg'
 import { join } from 'path'
 import { defineCommand } from 'citty'
 import { existsSync, mkdirSync } from 'fs'
-
-if (ffmpegStatic) ffmpeg.setFfmpegPath(ffmpegStatic)
 
 export default defineCommand({
   meta: {

@@ -9,13 +9,13 @@ No system dependencies required. Zero-config by default.
 ### Globally via npm
 
 ```bash
-npm install -g asset-forge
+npm i -g @ricka7x/asset-forge
 ```
 
 ### Or use via npx (no install)
 
 ```bash
-npx asset-forge <command> [options]
+npx @ricka7x/asset-forge <command> [options]
 ```
 
 ## Programmatic API
@@ -23,13 +23,13 @@ npx asset-forge <command> [options]
 Asset Forge is also a powerful Node.js library for your build scripts.
 
 ```bash
-npm install asset-forge
+npm i @ricka7x/asset-forge
 ```
 
 ### Modern, Smart API
 
 ```javascript
-import { optimize, resize, ogImage, configure } from 'asset-forge'
+import { optimize, resize, ogImage, configure } from '@ricka7x/asset-forge'
 
 // Optional: Configure global defaults
 configure({
@@ -83,11 +83,12 @@ The output argument is **optional** on every command. Priority order:
 
 ### Fonts
 
-Text commands (`og-image`, etc.) auto-detect fonts:
+Text commands (`og-image`, etc.) resolve fonts in this order:
 
 1. `FORGE_FONT_BOLD` / `FORGE_FONT_REGULAR` env vars
 2. `forge config set fonts.bold` / `fonts.regular`
-3. Auto-detected system fonts (macOS/Linux)
+3. Bundled Inter fonts shipped with the package
+4. Auto-detected system fonts (macOS/Linux)
 
 ---
 

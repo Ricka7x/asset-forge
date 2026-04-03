@@ -135,7 +135,7 @@ npm publish
 We still maintain a Homebrew formula as a convenience wrapper around the npm package.
 
 1. Update `Formula/asset-forge.rb` with the new version.
-2. The formula now simply runs `npm install -g asset-forge`.
+2. The formula now installs `@ricka7x/asset-forge` from npm.
 
 ---
 
