@@ -5,6 +5,7 @@ class AssetForge < Formula
   sha256 "PLACEHOLDER_NPM_TARBALL_SHA"
 
   depends_on "node"
+  depends_on "ffmpeg"
 
   def install
     system "npm", "install", *std_npm_args(prefix: libexec)
