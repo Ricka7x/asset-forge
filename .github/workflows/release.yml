@@ -96,6 +96,7 @@ jobs:
             sha256 "${SHA256}"
 
             depends_on "node"
+            depends_on "ffmpeg"
 
             def install
               system "npm", "install", *std_npm_args(prefix: libexec)
